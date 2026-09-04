@@ -21,8 +21,13 @@ type Mahasiswa = {
     created_at?: string;
 };
 
-const API = "http://localhost:5000/api";
-const SERVER = "http://localhost:5000";
+const API =
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000/api";
+
+const SERVER =
+    process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
+    "http://localhost:5000";
 
 export default function MahasiswaDashboard() {
     const [data, setData] = useState<Mahasiswa[]>([]);

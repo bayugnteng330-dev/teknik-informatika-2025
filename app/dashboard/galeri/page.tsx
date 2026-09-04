@@ -8,7 +8,9 @@ type Galeri = {
     created_at: string;
 };
 
-const API_SERVER = "http://localhost:5000";
+const API_SERVER =
+    process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
+    "http://localhost:5000";
 
 async function getGaleri(): Promise<Galeri[]> {
     try {
