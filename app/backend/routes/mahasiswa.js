@@ -79,7 +79,6 @@ const upload = multer({
 
 });
 
-
 // ==========================================
 // GET SEMUA MAHASISWA
 // ==========================================
@@ -104,7 +103,9 @@ router.get("/", (req, res) => {
             return res.status(500).json({
                 status: false,
                 message: "Gagal mengambil data mahasiswa",
-                error: err.message
+                error: err.message || "Database query gagal",
+                code: err.code || "UNKNOWN",
+                sqlMessage: err.sqlMessage || ""
             });
         }
 
@@ -116,7 +117,6 @@ router.get("/", (req, res) => {
     });
 
 });
-
 
 // ==========================================
 // GET MAHASISWA BERDASARKAN ID
@@ -161,7 +161,6 @@ router.get("/:id", (req, res) => {
     });
 
 });
-
 
 // ==========================================
 // TAMBAH MAHASISWA + FOTO
@@ -291,7 +290,6 @@ router.post(
 
     }
 );
-
 
 // ==========================================
 // UPDATE MAHASISWA
@@ -436,7 +434,6 @@ router.put(
     }
 );
 
-
 // ==========================================
 // DELETE MAHASISWA
 // ==========================================
@@ -536,5 +533,8 @@ router.delete("/:id", (req, res) => {
 
 });
 
+// ==========================================
+// EXPORT
+// ==========================================
 
 module.exports = router;
