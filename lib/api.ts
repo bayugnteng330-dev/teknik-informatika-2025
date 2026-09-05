@@ -1,6 +1,6 @@
 const API_URL =
     process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:5000/api";
+    "https://teknik-informatika-2025-production.up.railway.app/api";
 export async function getMahasiswa() {
     try {
         const response = await fetch(
