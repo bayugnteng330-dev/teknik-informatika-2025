@@ -1,6 +1,7 @@
 const API_URL =
     process.env.NEXT_PUBLIC_API_URL ||
-    "https://teknik-informatika-2025-production.up.railway.app/api";
+    "https://trustworthy-strength-production-497e.up.railway.app/api";
+
 export async function getMahasiswa() {
     try {
         const response = await fetch(
@@ -25,7 +26,6 @@ export async function getMahasiswa() {
         return result.data || [];
 
     } catch (error) {
-
         console.error(
             "GET MAHASISWA ERROR:",
             error
