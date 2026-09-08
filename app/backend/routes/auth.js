@@ -50,21 +50,52 @@ router.post("/login", (req, res) => {
 
         const admin = results[0];
 
+        // ==========================================
+        // CEK PASSWORD
+        // ==========================================
+
+        let passwordMatch;
+
         try {
-            // Cek password
-            const passwordMatch = await bcrypt.compare(
+            passwordMatch = await bcrypt.compare(
                 password,
                 admin.password
             );
+        } catch (error) {
+            console.error("BCRYPT ERROR:", error);
 
-            if (!passwordMatch) {
-                return res.status(401).json({
-                    status: false,
-                    message: "Username atau password salah",
-                });
-            }
+            return res.status(500).json({
+                status: false,
+                message: "Gagal memverifikasi password",
+            });
+        }
 
-            // Buat JWT
+        // Password salah
+        if (!passwordMatch) {
+            return res.status(401).json({
+                status: false,
+                message: "Username atau password salah",
+            });
+        }
+
+        // ==========================================
+        // CEK JWT SECRET
+        // ==========================================
+
+        if (!process.env.JWT_SECRET) {
+            console.error("JWT ERROR: JWT_SECRET tidak ditemukan");
+
+            return res.status(500).json({
+                status: false,
+                message: "JWT_SECRET belum dikonfigurasi di server",
+            });
+        }
+
+        // ==========================================
+        // BUAT TOKEN JWT
+        // ==========================================
+
+        try {
             const token = jwt.sign(
                 {
                     id: admin.id,
@@ -86,11 +117,11 @@ router.post("/login", (req, res) => {
                 },
             });
         } catch (error) {
-            console.error("PASSWORD ERROR:", error);
+            console.error("JWT ERROR:", error);
 
             return res.status(500).json({
                 status: false,
-                message: "Gagal memverifikasi password",
+                message: "Gagal membuat token login",
             });
         }
     });
