@@ -1,9 +1,5 @@
 import { getMahasiswa } from "@/lib/api";
 
-const API_SERVER =
-    process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
-    "http://localhost:5000";
-
 export default async function MahasiswaPage() {
     let mahasiswa = [];
     let error = "";
@@ -153,7 +149,7 @@ export default async function MahasiswaPage() {
                                             {item.foto ? (
 
                                                 <img
-                                                    src={`${API_SERVER}/uploads/${item.foto}`}
+                                                    src={`/uploads/${item.foto}`}
                                                     alt={item.nama}
                                                     className="
                                                         h-full
