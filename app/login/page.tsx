@@ -14,9 +14,13 @@ export default function LoginPage() {
 
         setLoading(true);
 
+        const API_URL =
+            process.env.NEXT_PUBLIC_API_URL ||
+            "https://trustworthy-strength-production-497e.up.railway.app/api";
+
         try {
             const response = await fetch(
-               `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+                `${API_URL}/auth/login`,
                 {
                     method: "POST",
                     headers: {
@@ -52,7 +56,7 @@ export default function LoginPage() {
             console.error("LOGIN ERROR:", error);
 
             alert(
-                "Tidak dapat terhubung ke server. Pastikan backend berjalan di port 5000."
+                "Tidak dapat terhubung ke server. Silakan coba lagi."
             );
         } finally {
             setLoading(false);
@@ -95,7 +99,6 @@ export default function LoginPage() {
             <div className="relative z-10 w-full max-w-md">
 
                 <div className="rounded-[28px] border border-white/10 bg-slate-900/70 p-6 shadow-[0_30px_100px_rgba(0,0,0,0.55)] backdrop-blur-2xl sm:p-8">
-
 
                     {/* ========================= */}
                     {/* LOGO */}
@@ -149,7 +152,6 @@ export default function LoginPage() {
                         onSubmit={handleSubmit}
                         className="space-y-5"
                     >
-
 
                         {/* ========================= */}
                         {/* USERNAME */}
