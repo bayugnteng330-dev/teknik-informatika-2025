@@ -1,37 +1,66 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const path = require("path");
+const fs = require("fs");
 
 const db = require("../db");
-const cloudinary = require("../cloudinary");
-const auth = require("../middleware/auth");
 
 
 // ========================================
-// KONFIGURASI CLOUDINARY
+// KONFIGURASI UPLOAD
 // ========================================
 
-const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
+const uploadDir = path.join(__dirname, "..", "uploads");
 
-    params: {
-        folder: "informatika25/galeri",
-        allowed_formats: ["jpg", "jpeg", "png", "webp"],
-        transformation: [
-            {
-                width: 1600,
-                height: 1600,
-                crop: "limit"
-            }
-        ]
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, {
+        recursive: true
+    });
+}
+
+
+const storage = multer.diskStorage({
+
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
+    },
+
+    filename: function (req, file, cb) {
+
+        const uniqueName =
+            Date.now() +
+            "-" +
+            Math.round(Math.random() * 1E9) +
+            path.extname(file.originalname);
+
+        cb(null, uniqueName);
     }
+
 });
+
+
+const fileFilter = (req, file, cb) => {
+
+    const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp"
+    ];
+
+    if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error("File harus berupa JPG, JPEG, PNG, atau WEBP"));
+    }
+
+};
 
 
 const upload = multer({
     storage: storage,
-
+    fileFilter: fileFilter,
     limits: {
         fileSize: 5 * 1024 * 1024
     }
@@ -117,216 +146,168 @@ router.get("/:id", (req, res) => {
 
 
 // ========================================
-// POST TAMBAH GALERI + CLOUDINARY
+// POST TAMBAH GALERI + UPLOAD FOTO
 // ========================================
 
-router.post(
-    "/",
-    auth,
-    upload.single("foto"),
-    (req, res) => {
+router.post("/", upload.single("foto"), (req, res) => {
 
-        const {
-            judul,
-            deskripsi
-        } = req.body;
+    const {
+        judul,
+        deskripsi
+    } = req.body;
 
 
-        if (!judul) {
+    if (!judul) {
 
-            return res.status(400).json({
-                status: false,
-                message: "Judul galeri wajib diisi"
-            });
-
+        // Hapus foto jika judul kosong
+        if (req.file) {
+            fs.unlinkSync(req.file.path);
         }
 
+        return res.status(400).json({
+            status: false,
+            message: "Judul galeri wajib diisi"
+        });
 
-        const foto = req.file
-            ? req.file.path
-            : null;
-
-
-        const sql = `
-            INSERT INTO galeri
-            (judul, deskripsi, foto)
-            VALUES (?, ?, ?)
-        `;
+    }
 
 
-        db.query(
-            sql,
-            [
-                judul,
-                deskripsi || null,
-                foto
-            ],
-            (err, result) => {
+    const foto = req.file
+        ? req.file.filename
+        : null;
 
-                if (err) {
 
-                    // Jika database gagal,
-                    // hapus foto dari Cloudinary
-                    if (req.file && req.file.filename) {
+    const sql = `
+        INSERT INTO galeri
+        (judul, deskripsi, foto)
+        VALUES (?, ?, ?)
+    `;
 
-                        cloudinary.uploader.destroy(
-                            req.file.filename
-                        ).catch(() => {});
 
-                    }
+    db.query(
+        sql,
+        [
+            judul,
+            deskripsi || null,
+            foto
+        ],
+        (err, result) => {
 
-                    return res.status(500).json({
-                        status: false,
-                        message: "Gagal menyimpan galeri",
-                        error: err.message
-                    });
+            if (err) {
 
+                if (req.file) {
+                    fs.unlinkSync(req.file.path);
                 }
 
-
-                res.status(201).json({
-
-                    status: true,
-
-                    message: "Galeri berhasil ditambahkan",
-
-                    data: {
-                        id: result.insertId,
-                        judul,
-                        deskripsi,
-                        foto
-                    }
-
+                return res.status(500).json({
+                    status: false,
+                    message: "Gagal menyimpan galeri",
+                    error: err.message
                 });
 
             }
-        );
 
-    }
-);
+
+            res.status(201).json({
+
+                status: true,
+
+                message: "Galeri berhasil ditambahkan",
+
+                data: {
+                    id: result.insertId,
+                    judul,
+                    deskripsi,
+                    foto
+                }
+
+            });
+
+        }
+    );
+
+});
 
 
 // ========================================
 // DELETE GALERI
 // ========================================
 
-router.delete(
-    "/:id",
-    auth,
-    (req, res) => {
+router.delete("/:id", (req, res) => {
 
-        const { id } = req.params;
+    const { id } = req.params;
 
 
-        // Ambil data foto
-        db.query(
-            "SELECT foto FROM galeri WHERE id = ?",
-            [id],
-            (err, results) => {
+    // Ambil data foto terlebih dahulu
+    db.query(
+        "SELECT foto FROM galeri WHERE id = ?",
+        [id],
+        (err, results) => {
 
-                if (err) {
+            if (err) {
 
-                    return res.status(500).json({
-                        status: false,
-                        message: err.message
-                    });
+                return res.status(500).json({
+                    status: false,
+                    message: err.message
+                });
 
-                }
-
-
-                if (results.length === 0) {
-
-                    return res.status(404).json({
-                        status: false,
-                        message: "Galeri tidak ditemukan"
-                    });
-
-                }
+            }
 
 
-                const foto = results[0].foto;
+            if (results.length === 0) {
+
+                return res.status(404).json({
+                    status: false,
+                    message: "Galeri tidak ditemukan"
+                });
+
+            }
 
 
-                // Hapus dari database
-                db.query(
-                    "DELETE FROM galeri WHERE id = ?",
-                    [id],
-                    async (deleteErr) => {
-
-                        if (deleteErr) {
-
-                            return res.status(500).json({
-                                status: false,
-                                message: deleteErr.message
-                            });
-
-                        }
+            const foto = results[0].foto;
 
 
-                        // ========================================
-                        // HAPUS FOTO DARI CLOUDINARY
-                        // ========================================
+            // Hapus dari database
+            db.query(
+                "DELETE FROM galeri WHERE id = ?",
+                [id],
+                (deleteErr) => {
 
-                        if (
-                            foto &&
-                            foto.includes("cloudinary.com")
-                        ) {
+                    if (deleteErr) {
 
-                            try {
-
-                                /*
-                                Contoh URL:
-
-                                https://res.cloudinary.com/
-                                cloud/image/upload/
-                                v123456/
-                                informatika25/galeri/foto.jpg
-
-                                Kita ambil public_id:
-                                informatika25/galeri/foto
-                                */
-
-                                const parts =
-                                    foto.split("/upload/")[1];
-
-                                if (parts) {
-
-                                    const publicId =
-                                        parts
-                                            .replace(/^v[0-9]+\//, "")
-                                            .replace(/\.[^/.]+$/, "");
-
-                                    await cloudinary.uploader.destroy(
-                                        publicId
-                                    );
-
-                                }
-
-                            } catch (cloudinaryError) {
-
-                                console.error(
-                                    "CLOUDINARY DELETE ERROR:",
-                                    cloudinaryError.message
-                                );
-
-                            }
-
-                        }
-
-
-                        res.json({
-                            status: true,
-                            message: "Galeri berhasil dihapus"
+                        return res.status(500).json({
+                            status: false,
+                            message: deleteErr.message
                         });
 
                     }
-                );
 
-            }
-        );
 
-    }
-);
+                    // Hapus file foto
+                    if (foto) {
+
+                        const fotoPath =
+                            path.join(uploadDir, foto);
+
+                        if (fs.existsSync(fotoPath)) {
+                            fs.unlinkSync(fotoPath);
+                        }
+
+                    }
+
+
+                    res.json({
+                        status: true,
+                        message: "Galeri berhasil dihapus"
+                    });
+
+                }
+            );
+
+        }
+    );
+
+});
 
 
 module.exports = router;
