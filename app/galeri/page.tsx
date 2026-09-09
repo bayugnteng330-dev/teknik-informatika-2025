@@ -51,7 +51,6 @@ export default async function GaleriPage() {
 
             </div>
 
-
             {/* GRID BACKGROUND */}
 
             <div
@@ -63,7 +62,6 @@ export default async function GaleriPage() {
                 }}
             />
 
-
             {/* ================================================= */}
             {/* HERO */}
             {/* ================================================= */}
@@ -73,8 +71,6 @@ export default async function GaleriPage() {
                 <div className="mx-auto max-w-6xl">
 
                     <div className="grid items-end gap-10 lg:grid-cols-[1fr_auto]">
-
-                        {/* TITLE */}
 
                         <div>
 
@@ -88,7 +84,6 @@ export default async function GaleriPage() {
 
                             </div>
 
-
                             <h1 className="max-w-4xl text-5xl font-black leading-[0.95] tracking-tight sm:text-6xl md:text-7xl lg:text-8xl">
 
                                 Our{" "}
@@ -99,7 +94,6 @@ export default async function GaleriPage() {
 
                             </h1>
 
-
                             <p className="mt-7 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
 
                                 Kumpulan momen, kegiatan, dan perjalanan
@@ -109,7 +103,6 @@ export default async function GaleriPage() {
                             </p>
 
                         </div>
-
 
                         {/* COUNTER */}
 
@@ -138,7 +131,6 @@ export default async function GaleriPage() {
                 </div>
 
             </section>
-
 
             {/* ================================================= */}
             {/* GALERI */}
@@ -223,6 +215,9 @@ export default async function GaleriPage() {
                                                         ease-out
                                                         group-hover:scale-110
                                                     "
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = "none";
+                                                    }}
                                                 />
 
                                             ) : (
@@ -245,7 +240,6 @@ export default async function GaleriPage() {
 
                                             )}
 
-
                                             {/* DARK GRADIENT */}
 
                                             <div className="
@@ -257,7 +251,6 @@ export default async function GaleriPage() {
                                                 opacity-80
                                             " />
 
-
                                             {/* BLUE LIGHT */}
 
                                             <div className="
@@ -267,7 +260,6 @@ export default async function GaleriPage() {
                                                 duration-700
                                                 group-hover:bg-blue-500/10
                                             " />
-
 
                                             {/* NUMBER */}
 
@@ -285,7 +277,6 @@ export default async function GaleriPage() {
                                                 {String(index + 1).padStart(2, "0")}
 
                                             </div>
-
 
                                             {/* BADGE */}
 
@@ -307,7 +298,6 @@ export default async function GaleriPage() {
 
                                             </div>
 
-
                                             {/* CONTENT */}
 
                                             <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-7">
@@ -322,7 +312,6 @@ export default async function GaleriPage() {
 
                                                 </div>
 
-
                                                 <h2 className="
                                                     max-w-2xl
                                                     text-2xl
@@ -335,7 +324,6 @@ export default async function GaleriPage() {
                                                     {item.judul}
 
                                                 </h2>
-
 
                                                 {item.deskripsi && (
 
@@ -355,7 +343,6 @@ export default async function GaleriPage() {
                                                 )}
 
                                             </div>
-
 
                                             {/* ARROW */}
 
@@ -388,7 +375,6 @@ export default async function GaleriPage() {
 
                                         </div>
 
-
                                         {/* BOTTOM BAR */}
 
                                         <div className="
@@ -413,7 +399,6 @@ export default async function GaleriPage() {
 
                                             </div>
 
-
                                             <div className="
                                                 text-xs
                                                 font-medium
@@ -431,6 +416,7 @@ export default async function GaleriPage() {
                                     </article>
 
                                 );
+
                             })}
 
                         </div>
@@ -440,7 +426,6 @@ export default async function GaleriPage() {
                 </div>
 
             </section>
-
 
             {/* ================================================= */}
             {/* BOTTOM CTA */}
@@ -478,7 +463,6 @@ export default async function GaleriPage() {
                         bg-blue-500/10
                         blur-3xl
                     " />
-
 
                     <div className="relative">
 
@@ -535,7 +519,6 @@ export default async function GaleriPage() {
                 </div>
 
             </section>
-
 
             {/* FOOTER */}
 
