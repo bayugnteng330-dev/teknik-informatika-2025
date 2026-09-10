@@ -1,130 +1,64 @@
-const express = require("express");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const router = express.Router();
-const db = require("../db");
+module.exports = function auth(req, res, next) {
+    try {
+        // Ambil Authorization header
+        const authHeader = req.headers.authorization;
 
-// ==========================================
-// LOGIN ADMIN
-// POST /api/auth/login
-// ==========================================
+        if (!authHeader) {
+            return res.status(401).json({
+                status: false,
+                message: "Token tidak ditemukan. Silakan login terlebih dahulu."
+            });
+        }
 
-router.post("/login", (req, res) => {
-    const { username, password } = req.body;
+        // Format:
+        // Authorization: Bearer TOKEN
+        const parts = authHeader.split(" ");
 
-    // Cek input
-    if (!username || !password) {
-        return res.status(400).json({
+        if (parts.length !== 2 || parts[0] !== "Bearer") {
+            return res.status(401).json({
+                status: false,
+                message: "Format token tidak valid."
+            });
+        }
+
+        const token = parts[1];
+
+        if (!token) {
+            return res.status(401).json({
+                status: false,
+                message: "Token kosong."
+            });
+        }
+
+        // Cek JWT_SECRET
+        if (!process.env.JWT_SECRET) {
+            console.error("JWT_SECRET tidak ditemukan.");
+
+            return res.status(500).json({
+                status: false,
+                message: "JWT_SECRET belum dikonfigurasi di server."
+            });
+        }
+
+        // Verifikasi token
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_SECRET
+        );
+
+        // Simpan data admin ke request
+        req.user = decoded;
+
+        next();
+
+    } catch (error) {
+        console.error("AUTH ERROR:", error);
+
+        return res.status(401).json({
             status: false,
-            message: "Username dan password wajib diisi",
+            message: "Token tidak valid atau sudah expired."
         });
     }
-
-    // Cari admin berdasarkan username
-    const sql = `
-        SELECT id, username, password
-        FROM admin
-        WHERE username = ?
-        LIMIT 1
-    `;
-
-    db.query(sql, [username], async (err, results) => {
-        if (err) {
-            console.error("LOGIN ERROR:", err);
-
-            return res.status(500).json({
-                status: false,
-                message: "Gagal melakukan login",
-                error: err.message,
-            });
-        }
-
-        // Username tidak ditemukan
-        if (results.length === 0) {
-            return res.status(401).json({
-                status: false,
-                message: "Username atau password salah",
-            });
-        }
-
-        const admin = results[0];
-
-        // ==========================================
-        // CEK PASSWORD
-        // ==========================================
-
-        let passwordMatch;
-
-        try {
-            passwordMatch = await bcrypt.compare(
-                password,
-                admin.password
-            );
-        } catch (error) {
-            console.error("BCRYPT ERROR:", error);
-
-            return res.status(500).json({
-                status: false,
-                message: "Gagal memverifikasi password",
-            });
-        }
-
-        // Password salah
-        if (!passwordMatch) {
-            return res.status(401).json({
-                status: false,
-                message: "Username atau password salah",
-            });
-        }
-
-        // ==========================================
-        // CEK JWT SECRET
-        // ==========================================
-
-        if (!process.env.JWT_SECRET) {
-            console.error("JWT ERROR: JWT_SECRET tidak ditemukan");
-
-            return res.status(500).json({
-                status: false,
-                message: "JWT_SECRET belum dikonfigurasi di server",
-            });
-        }
-
-        // ==========================================
-        // BUAT TOKEN JWT
-        // ==========================================
-
-        try {
-            const token = jwt.sign(
-                {
-                    id: admin.id,
-                    username: admin.username,
-                },
-                process.env.JWT_SECRET,
-                {
-                    expiresIn: "1d",
-                }
-            );
-
-            return res.json({
-                status: true,
-                message: "Login berhasil",
-                token,
-                admin: {
-                    id: admin.id,
-                    username: admin.username,
-                },
-            });
-        } catch (error) {
-            console.error("JWT ERROR:", error);
-
-            return res.status(500).json({
-                status: false,
-                message: "Gagal membuat token login",
-            });
-        }
-    });
-});
-
-module.exports = router;
+};
