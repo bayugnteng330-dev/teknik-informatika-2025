@@ -1,20 +1,6 @@
 "use client";
 
-import {
-    ChangeEvent,
-    FormEvent,
-    useEffect,
-    useState,
-} from "react";
-import Link from "next/link";
-
-type Galeri = {
-    id: number;
-    judul: string;
-    deskripsi: string | null;
-    foto: string | null;
-    created_at: string;
-};
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 
 const API =
     process.env.NEXT_PUBLIC_API_URL ||
@@ -23,166 +9,252 @@ const API =
 const SERVER =
     API.replace(/\/api\/?$/, "");
 
-export default function GaleriDashboard() {
-    const [data, setData] = useState<Galeri[]>([]);
+type Galeri = {
+    id: number;
+    judul: string;
+    deskripsi: string | null;
+    foto: string | null;
+    created_at?: string;
+};
+
+export default function DashboardGaleri() {
+
+    const [galeri, setGaleri] = useState<Galeri[]>([]);
 
     const [judul, setJudul] = useState("");
     const [deskripsi, setDeskripsi] = useState("");
     const [foto, setFoto] = useState<File | null>(null);
 
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
-    const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
-    // =========================================
+
+    // ========================================
     // CEK LOGIN
-    // =========================================
+    // ========================================
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
+
+        const token =
+            localStorage.getItem("token");
 
         if (!token) {
             window.location.href = "/login";
             return;
         }
 
-        loadData();
+        loadGaleri();
+
     }, []);
 
-    // =========================================
-    // AMBIL DATA GALERI
-    // =========================================
 
-    const loadData = async () => {
+    // ========================================
+    // GET GALERI
+    // ========================================
+
+    async function loadGaleri() {
+
         try {
+
             setLoading(true);
-            setError("");
 
-            const response = await fetch(`${API}/galeri`, {
-                cache: "no-store",
-            });
+            const response = await fetch(
+                `${API}/galeri`,
+                {
+                    cache: "no-store"
+                }
+            );
 
-            const result = await response.json();
+            const result =
+                await response.json();
 
-            if (!response.ok) {
+            if (
+                !response.ok ||
+                result.status === false
+            ) {
                 throw new Error(
                     result.message ||
                     "Gagal mengambil data galeri"
                 );
             }
 
-            setData(result.data || []);
+            setGaleri(result.data || []);
+
         } catch (err) {
-            console.error(err);
+
+            console.error(
+                "GET GALERI ERROR:",
+                err
+            );
 
             setError(
                 err instanceof Error
                     ? err.message
                     : "Gagal mengambil data galeri"
             );
+
         } finally {
+
             setLoading(false);
-        }
-    };
 
-    // =========================================
+        }
+
+    }
+
+
+    // ========================================
     // PILIH FOTO
-    // =========================================
+    // ========================================
 
-    const handleFoto = (
+    function handleFoto(
         e: ChangeEvent<HTMLInputElement>
-    ) => {
+    ) {
+
         const file =
-            e.target.files?.[0] || null;
+            e.target.files?.[0];
 
-        setFoto(file);
-    };
-
-    // =========================================
-    // RESET FORM
-    // =========================================
-
-    const resetForm = () => {
-        setJudul("");
-        setDeskripsi("");
-        setFoto(null);
-
-        const input =
-            document.getElementById(
-                "foto"
-            ) as HTMLInputElement;
-
-        if (input) {
-            input.value = "";
+        if (!file) {
+            setFoto(null);
+            return;
         }
-    };
 
-    // =========================================
+        // Validasi ukuran
+        if (file.size > 5 * 1024 * 1024) {
+
+            setError(
+                "Ukuran foto maksimal 5 MB"
+            );
+
+            e.target.value = "";
+            setFoto(null);
+
+            return;
+        }
+
+        // Validasi format
+        const allowed = [
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/webp"
+        ];
+
+        if (!allowed.includes(file.type)) {
+
+            setError(
+                "Foto harus JPG, JPEG, PNG, atau WEBP"
+            );
+
+            e.target.value = "";
+            setFoto(null);
+
+            return;
+        }
+
+        setError("");
+        setFoto(file);
+
+    }
+
+
+    // ========================================
     // TAMBAH GALERI
-    // =========================================
+    // ========================================
 
-    const handleSubmit = async (
+    async function handleSubmit(
         e: FormEvent<HTMLFormElement>
-    ) => {
+    ) {
+
         e.preventDefault();
 
-        setSaving(true);
-        setMessage("");
         setError("");
+        setSuccess("");
+
+        const token =
+            localStorage.getItem("token");
+
+        if (!token) {
+
+            window.location.href = "/login";
+            return;
+
+        }
+
+        if (!judul.trim()) {
+
+            setError(
+                "Judul galeri wajib diisi."
+            );
+
+            return;
+        }
+
+        if (!foto) {
+
+            setError(
+                "Silakan pilih foto terlebih dahulu."
+            );
+
+            return;
+        }
 
         try {
-            const token =
-                localStorage.getItem("token");
 
-            if (!token) {
-                window.location.href = "/login";
-                return;
-            }
+            setUploading(true);
 
             const formData =
                 new FormData();
 
             formData.append(
                 "judul",
-                judul
+                judul.trim()
             );
 
             formData.append(
                 "deskripsi",
-                deskripsi
+                deskripsi.trim()
             );
 
-            if (foto) {
-                formData.append(
-                    "foto",
-                    foto
-                );
-            }
+            formData.append(
+                "foto",
+                foto
+            );
 
             const response =
                 await fetch(
                     `${API}/galeri`,
                     {
                         method: "POST",
+
                         headers: {
                             Authorization:
-                                `Bearer ${token}`,
+                                `Bearer ${token}`
                         },
-                        body: formData,
+
+                        body: formData
                     }
                 );
 
             const result =
                 await response.json();
 
-            if (
-                response.status === 401 ||
-                response.status === 403
-            ) {
+            console.log(
+                "UPLOAD GALERI:",
+                result
+            );
+
+            // Token expired
+            if (response.status === 401) {
+
                 localStorage.removeItem(
                     "token"
+                );
+
+                localStorage.removeItem(
+                    "admin"
                 );
 
                 window.location.href =
@@ -191,84 +263,116 @@ export default function GaleriDashboard() {
                 return;
             }
 
-            if (!response.ok) {
+            if (
+                !response.ok ||
+                result.status === false
+            ) {
+
                 throw new Error(
                     result.message ||
                     result.error ||
-                    "Gagal menambahkan foto"
+                    "Gagal menambahkan galeri"
                 );
+
             }
 
-            setMessage(
-                "Foto galeri berhasil ditambahkan."
+            setSuccess(
+                "Foto galeri berhasil ditambahkan!"
             );
 
-            resetForm();
+            // Reset form
+            setJudul("");
+            setDeskripsi("");
+            setFoto(null);
 
-            await loadData();
+            const fileInput =
+                document.getElementById(
+                    "foto"
+                ) as HTMLInputElement | null;
+
+            if (fileInput) {
+                fileInput.value = "";
+            }
+
+            // Refresh data
+            await loadGaleri();
 
         } catch (err) {
-            console.error(err);
+
+            console.error(
+                "UPLOAD GALERI ERROR:",
+                err
+            );
 
             setError(
                 err instanceof Error
                     ? err.message
-                    : "Gagal menambahkan foto"
+                    : "Terjadi kesalahan pada server"
             );
+
         } finally {
-            setSaving(false);
+
+            setUploading(false);
+
         }
-    };
 
-    // =========================================
+    }
+
+
+    // ========================================
     // HAPUS GALERI
-    // =========================================
+    // ========================================
 
-    const handleDelete = async (
+    async function handleDelete(
         id: number
-    ) => {
-        const yakin = confirm(
-            "Yakin ingin menghapus foto ini?"
-        );
+    ) {
+
+        const yakin =
+            window.confirm(
+                "Yakin ingin menghapus galeri ini?"
+            );
 
         if (!yakin) {
             return;
         }
 
+        const token =
+            localStorage.getItem("token");
+
+        if (!token) {
+
+            window.location.href =
+                "/login";
+
+            return;
+        }
+
         try {
-            setMessage("");
-            setError("");
-
-            const token =
-                localStorage.getItem("token");
-
-            if (!token) {
-                window.location.href =
-                    "/login";
-                return;
-            }
 
             const response =
                 await fetch(
                     `${API}/galeri/${id}`,
                     {
                         method: "DELETE",
+
                         headers: {
                             Authorization:
-                                `Bearer ${token}`,
-                        },
+                                `Bearer ${token}`
+                        }
                     }
                 );
 
             const result =
                 await response.json();
 
-            if (
-                response.status === 401 ||
-                response.status === 403
-            ) {
+            if (response.status === 401) {
+
                 localStorage.removeItem(
                     "token"
+                );
+
+                localStorage.removeItem(
+                    "admin"
                 );
 
                 window.location.href =
@@ -277,388 +381,355 @@ export default function GaleriDashboard() {
                 return;
             }
 
-            if (!response.ok) {
+            if (
+                !response.ok ||
+                result.status === false
+            ) {
+
                 throw new Error(
                     result.message ||
-                    result.error ||
-                    "Gagal menghapus foto"
+                    "Gagal menghapus galeri"
                 );
+
             }
 
-            setMessage(
-                "Foto galeri berhasil dihapus."
+            setSuccess(
+                "Galeri berhasil dihapus."
             );
 
-            await loadData();
+            await loadGaleri();
 
         } catch (err) {
-            console.error(err);
+
+            console.error(
+                "DELETE GALERI ERROR:",
+                err
+            );
 
             setError(
                 err instanceof Error
                     ? err.message
-                    : "Gagal menghapus foto"
+                    : "Gagal menghapus galeri"
             );
+
         }
-    };
 
-    // =========================================
+    }
+
+
+    // ========================================
     // LOGOUT
-    // =========================================
+    // ========================================
 
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
-    };
+    function handleLogout() {
 
-    // =========================================
-    // TAMPILAN
-    // =========================================
+        localStorage.removeItem(
+            "token"
+        );
+
+        localStorage.removeItem(
+            "admin"
+        );
+
+        window.location.href =
+            "/login";
+
+    }
+
+
+    // ========================================
+    // URL FOTO
+    // ========================================
+
+    function getFotoUrl(
+        foto: string | null
+    ) {
+
+        if (!foto) {
+            return null;
+        }
+
+        // Jika sudah URL
+        if (
+            foto.startsWith("http://") ||
+            foto.startsWith("https://")
+        ) {
+            return foto;
+        }
+
+        return `${SERVER}/uploads/${foto}`;
+
+    }
+
 
     return (
-        <main className="min-h-screen bg-slate-950 text-white">
+        <main className="min-h-screen bg-black text-white">
 
-            {/* SIDEBAR */}
+            {/* HEADER */}
 
-            <aside className="fixed left-0 top-0 hidden h-screen w-64 border-r border-white/10 bg-slate-900 lg:block">
+            <header className="border-b border-white/10 bg-black/80 backdrop-blur sticky top-0 z-50">
 
-                <div className="flex h-full flex-col">
+                <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
 
-                    <div className="border-b border-white/10 px-6 py-6">
+                    <div>
 
-                        <Link
-                            href="/dashboard"
-                            className="text-xl font-black"
-                        >
-                            INFORMATIKA
-                            <span className="text-blue-500">
-                                25
-                            </span>
-                        </Link>
+                        <h1 className="text-xl md:text-2xl font-bold">
+                            Dashboard Galeri
+                        </h1>
 
-                        <p className="mt-1 text-xs text-slate-500">
-                            DASHBOARD ADMIN
+                        <p className="text-sm text-gray-400">
+                            Kelola galeri Informatika 25
                         </p>
 
                     </div>
 
-                    <nav className="flex-1 space-y-2 p-4">
-
-                        <Link
-                            href="/dashboard"
-                            className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-400 transition hover:bg-white/5 hover:text-white"
-                        >
-                            <span>📊</span>
-                            Dashboard
-                        </Link>
-
-                        <Link
-                            href="/dashboard/mahasiswa"
-                            className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-400 transition hover:bg-white/5 hover:text-white"
-                        >
-                            <span>👨‍🎓</span>
-                            Mahasiswa
-                        </Link>
-
-                        <Link
-                            href="/dashboard/galeri"
-                            className="flex items-center gap-3 rounded-xl bg-blue-600 px-4 py-3 font-semibold"
-                        >
-                            <span>🖼️</span>
-                            Galeri
-                        </Link>
-
-                        <Link
-                            href="/dashboard/informasi"
-                            className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-400 transition hover:bg-white/5 hover:text-white"
-                        >
-                            <span>📢</span>
-                            Informasi
-                        </Link>
-
-                    </nav>
-
-                    <div className="border-t border-white/10 p-4">
-
-                        <Link
-                            href="/"
-                            className="mb-2 flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-slate-400 hover:bg-white/5 hover:text-white"
-                        >
-                            <span>🌐</span>
-                            Website
-                        </Link>
-
-                        <button
-                            onClick={handleLogout}
-                            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm text-red-400 hover:bg-red-500/10"
-                        >
-                            <span>🚪</span>
-                            Logout
-                        </button>
-
-                    </div>
+                    <button
+                        onClick={handleLogout}
+                        className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 transition text-sm"
+                    >
+                        Logout
+                    </button>
 
                 </div>
 
-            </aside>
+            </header>
 
-            {/* CONTENT */}
 
-            <div className="lg:ml-64">
+            <div className="max-w-7xl mx-auto px-4 py-8">
 
-                {/* HEADER */}
+                {/* NAVIGASI */}
 
-                <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/90 backdrop-blur">
+                <div className="flex flex-wrap gap-3 mb-8">
 
-                    <div className="px-6 py-5 md:px-8">
+                    <a
+                        href="/dashboard"
+                        className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10"
+                    >
+                        Dashboard
+                    </a>
 
-                        <p className="text-sm text-slate-500">
-                            Dashboard
-                        </p>
+                    <a
+                        href="/dashboard/mahasiswa"
+                        className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10"
+                    >
+                        Mahasiswa
+                    </a>
 
-                        <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                    <a
+                        href="/dashboard/galeri"
+                        className="px-4 py-2 rounded-lg bg-purple-600"
+                    >
+                        Galeri
+                    </a>
 
-                            <div>
+                    <a
+                        href="/dashboard/informasi"
+                        className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10"
+                    >
+                        Informasi
+                    </a>
 
-                                <h1 className="text-2xl font-bold">
-                                    Kelola Galeri
-                                </h1>
+                </div>
 
-                                <p className="mt-1 text-sm text-slate-500">
-                                    Tambahkan dan kelola
-                                    dokumentasi Angkatan 2025.
-                                </p>
 
-                            </div>
+                {/* PESAN */}
 
-                            <div className="rounded-xl bg-blue-500/10 px-4 py-2 text-sm text-blue-400">
-                                {data.length} Foto
-                            </div>
+                {error && (
+
+                    <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400">
+                        {error}
+                    </div>
+
+                )}
+
+                {success && (
+
+                    <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400">
+                        {success}
+                    </div>
+
+                )}
+
+
+                {/* FORM */}
+
+                <section className="bg-white/5 border border-white/10 rounded-2xl p-5 md:p-7 mb-10">
+
+                    <h2 className="text-xl font-bold mb-6">
+                        Tambah Foto Galeri
+                    </h2>
+
+                    <form
+                        onSubmit={handleSubmit}
+                        className="space-y-5"
+                    >
+
+                        <div>
+
+                            <label className="block text-sm text-gray-300 mb-2">
+                                Judul
+                            </label>
+
+                            <input
+                                type="text"
+                                value={judul}
+                                onChange={(e) =>
+                                    setJudul(
+                                        e.target.value
+                                    )
+                                }
+                                placeholder="Contoh: Dies Natalis XII"
+                                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 outline-none focus:border-purple-500"
+                            />
 
                         </div>
+
+
+                        <div>
+
+                            <label className="block text-sm text-gray-300 mb-2">
+                                Deskripsi
+                            </label>
+
+                            <textarea
+                                value={deskripsi}
+                                onChange={(e) =>
+                                    setDeskripsi(
+                                        e.target.value
+                                    )
+                                }
+                                placeholder="Deskripsi foto..."
+                                rows={4}
+                                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 outline-none focus:border-purple-500 resize-none"
+                            />
+
+                        </div>
+
+
+                        <div>
+
+                            <label className="block text-sm text-gray-300 mb-2">
+                                Foto
+                            </label>
+
+                            <input
+                                id="foto"
+                                type="file"
+                                accept="image/jpeg,image/jpg,image/png,image/webp"
+                                onChange={handleFoto}
+                                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10"
+                            />
+
+                            <p className="text-xs text-gray-500 mt-2">
+                                JPG, JPEG, PNG, WEBP — maksimal 5 MB
+                            </p>
+
+                        </div>
+
+
+                        {foto && (
+
+                            <div className="text-sm text-gray-400">
+
+                                Foto dipilih:{" "}
+
+                                <span className="text-white">
+                                    {foto.name}
+                                </span>
+
+                            </div>
+
+                        )}
+
+
+                        <button
+                            type="submit"
+                            disabled={uploading}
+                            className="w-full md:w-auto px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition"
+                        >
+                            {uploading
+                                ? "Mengupload..."
+                                : "Tambah Galeri"}
+                        </button>
+
+                    </form>
+
+                </section>
+
+
+                {/* DAFTAR GALERI */}
+
+                <section>
+
+                    <div className="flex items-center justify-between mb-5">
+
+                        <h2 className="text-xl font-bold">
+                            Daftar Galeri
+                        </h2>
+
+                        <span className="text-sm text-gray-500">
+                            {galeri.length} foto
+                        </span>
 
                     </div>
 
-                </header>
 
-                {/* MAIN */}
+                    {loading ? (
 
-                <div className="p-6 md:p-8">
-
-                    {/* NOTIFICATION */}
-
-                    {message && (
-                        <div className="mb-6 rounded-xl border border-green-500/20 bg-green-500/10 p-4 text-green-400">
-                            ✓ {message}
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-400">
-                            ! {error}
-                        </div>
-                    )}
-
-                    {/* FORM */}
-
-                    <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-
-                        <div className="mb-6">
-
-                            <h2 className="text-xl font-bold">
-                                Tambah Foto Galeri
-                            </h2>
-
-                            <p className="mt-1 text-sm text-slate-500">
-                                Tambahkan dokumentasi kegiatan
-                                mahasiswa.
-                            </p>
-
+                        <div className="text-center py-16 text-gray-400">
+                            Memuat galeri...
                         </div>
 
-                        <form
-                            onSubmit={handleSubmit}
-                            className="space-y-5"
-                        >
+                    ) : galeri.length === 0 ? (
 
-                            {/* JUDUL */}
-
-                            <div>
-
-                                <label className="mb-2 block text-sm font-medium text-slate-300">
-                                    Judul Foto
-                                </label>
-
-                                <input
-                                    type="text"
-                                    value={judul}
-                                    onChange={(e) =>
-                                        setJudul(
-                                            e.target.value
-                                        )
-                                    }
-                                    placeholder="Contoh: Kegiatan Bersama"
-                                    required
-                                    className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none transition focus:border-blue-500"
-                                />
-
-                            </div>
-
-                            {/* DESKRIPSI */}
-
-                            <div>
-
-                                <label className="mb-2 block text-sm font-medium text-slate-300">
-                                    Deskripsi
-                                </label>
-
-                                <textarea
-                                    value={deskripsi}
-                                    onChange={(e) =>
-                                        setDeskripsi(
-                                            e.target.value
-                                        )
-                                    }
-                                    placeholder="Deskripsi foto..."
-                                    rows={4}
-                                    className="w-full resize-none rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none transition focus:border-blue-500"
-                                />
-
-                            </div>
-
-                            {/* FOTO */}
-
-                            <div>
-
-                                <label className="mb-2 block text-sm font-medium text-slate-300">
-                                    Foto
-                                </label>
-
-                                <input
-                                    id="foto"
-                                    type="file"
-                                    accept="image/png,image/jpeg,image/jpg,image/webp"
-                                    onChange={handleFoto}
-                                    required
-                                    className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-white"
-                                />
-
-                                {foto && (
-                                    <p className="mt-2 text-xs text-slate-500">
-                                        File: {foto.name}
-                                    </p>
-                                )}
-
-                            </div>
-
-                            {/* BUTTON */}
-
-                            <button
-                                type="submit"
-                                disabled={saving}
-                                className="rounded-xl bg-blue-600 px-6 py-3 font-semibold transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                {saving
-                                    ? "Mengupload..."
-                                    : "➕ Tambah Foto"}
-                            </button>
-
-                        </form>
-
-                    </section>
-
-                    {/* DAFTAR */}
-
-                    <section className="mt-10">
-
-                        <div className="mb-5">
-
-                            <h2 className="text-xl font-bold">
-                                Daftar Galeri
-                            </h2>
-
-                            <p className="mt-1 text-sm text-slate-500">
-                                Foto yang tersimpan di database.
-                            </p>
-
+                        <div className="text-center py-16 text-gray-500 border border-white/10 rounded-2xl">
+                            Belum ada galeri.
                         </div>
 
-                        {loading ? (
+                    ) : (
 
-                            <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
-                                <div className="text-4xl">
-                                    ⏳
-                                </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-                                <p className="mt-3 text-slate-400">
-                                    Memuat data...
-                                </p>
-                            </div>
+                            {galeri.map((item) => {
 
-                        ) : data.length === 0 ? (
+                                const fotoUrl =
+                                    getFotoUrl(
+                                        item.foto
+                                    );
 
-                            <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-12 text-center">
-
-                                <div className="text-5xl">
-                                    📷
-                                </div>
-
-                                <h3 className="mt-4 text-lg font-bold">
-                                    Belum ada foto
-                                </h3>
-
-                                <p className="mt-2 text-sm text-slate-500">
-                                    Tambahkan foto menggunakan
-                                    form di atas.
-                                </p>
-
-                            </div>
-
-                        ) : (
-
-                            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-
-                                {data.map((item) => (
+                                return (
 
                                     <article
                                         key={item.id}
-                                        className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
+                                        className="overflow-hidden rounded-2xl bg-white/5 border border-white/10"
                                     >
 
-                                        {/* FOTO */}
+                                        {fotoUrl && (
 
-                                        <div className="h-56 bg-slate-900">
+                                            <img
+                                                src={fotoUrl}
+                                                alt={item.judul}
+                                                className="w-full h-56 object-cover"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display =
+                                                        "none";
+                                                }}
+                                            />
 
-                                            {item.foto ? (
-
-                                                <img
-                                                    src={`${SERVER}/uploads/${item.foto}`}
-                                                    alt={item.judul}
-                                                    className="h-full w-full object-cover"
-                                                />
-
-                                            ) : (
-
-                                                <div className="flex h-full items-center justify-center text-5xl">
-                                                    📷
-                                                </div>
-
-                                            )}
-
-                                        </div>
-
-                                        {/* INFO */}
+                                        )}
 
                                         <div className="p-5">
 
-                                            <h3 className="font-bold">
+                                            <h3 className="font-bold text-lg mb-2">
                                                 {item.judul}
                                             </h3>
 
                                             {item.deskripsi && (
-                                                <p className="mt-2 line-clamp-3 text-sm text-slate-500">
+
+                                                <p className="text-sm text-gray-400 mb-5">
                                                     {item.deskripsi}
                                                 </p>
+
                                             )}
 
                                             <button
@@ -667,24 +738,24 @@ export default function GaleriDashboard() {
                                                         item.id
                                                     )
                                                 }
-                                                className="mt-5 rounded-lg bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/20"
+                                                className="w-full py-2 rounded-lg bg-red-600/20 text-red-400 border border-red-500/20 hover:bg-red-600 hover:text-white transition"
                                             >
-                                                🗑️ Hapus
+                                                Hapus
                                             </button>
 
                                         </div>
 
                                     </article>
 
-                                ))}
+                                );
 
-                            </div>
+                            })}
 
-                        )}
+                        </div>
 
-                    </section>
+                    )}
 
-                </div>
+                </section>
 
             </div>
 
