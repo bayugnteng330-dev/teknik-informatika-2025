@@ -1,14 +1,17 @@
 const express = require("express");
 const router = express.Router();
+
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
 const db = require("../db");
+const auth = require("../middleware/auth");
 
-// ==========================================
+
+// =====================================================
 // FOLDER UPLOAD
-// ==========================================
+// =====================================================
 
 const uploadDir = path.join(__dirname, "../uploads");
 
@@ -18,9 +21,10 @@ if (!fs.existsSync(uploadDir)) {
     });
 }
 
-// ==========================================
-// MULTER
-// ==========================================
+
+// =====================================================
+// MULTER STORAGE
+// =====================================================
 
 const storage = multer.diskStorage({
 
@@ -30,7 +34,9 @@ const storage = multer.diskStorage({
 
     filename: (req, file, cb) => {
 
-        const ext = path.extname(file.originalname);
+        const ext = path
+            .extname(file.originalname)
+            .toLowerCase();
 
         const namaFile =
             Date.now() +
@@ -43,7 +49,13 @@ const storage = multer.diskStorage({
 
 });
 
+
+// =====================================================
+// MULTER
+// =====================================================
+
 const upload = multer({
+
     storage: storage,
 
     limits: {
@@ -59,10 +71,9 @@ const upload = multer({
             ".webp"
         ];
 
-        const ext =
-            path.extname(
-                file.originalname
-            ).toLowerCase();
+        const ext = path
+            .extname(file.originalname)
+            .toLowerCase();
 
         if (!allowed.includes(ext)) {
 
@@ -71,7 +82,6 @@ const upload = multer({
                     "Format foto harus JPG, JPEG, PNG, atau WEBP"
                 )
             );
-
         }
 
         cb(null, true);
@@ -79,9 +89,12 @@ const upload = multer({
 
 });
 
-// ==========================================
+
+// =====================================================
 // GET SEMUA MAHASISWA
-// ==========================================
+// PUBLIC
+// GET /api/mahasiswa
+// =====================================================
 
 router.get("/", (req, res) => {
 
@@ -103,13 +116,11 @@ router.get("/", (req, res) => {
             return res.status(500).json({
                 status: false,
                 message: "Gagal mengambil data mahasiswa",
-                error: err.message || "Database query gagal",
-                code: err.code || "UNKNOWN",
-                sqlMessage: err.sqlMessage || ""
+                error: err.message || "Database query gagal"
             });
         }
 
-        res.json({
+        return res.json({
             status: true,
             data: results
         });
@@ -118,9 +129,12 @@ router.get("/", (req, res) => {
 
 });
 
-// ==========================================
+
+// =====================================================
 // GET MAHASISWA BERDASARKAN ID
-// ==========================================
+// PUBLIC
+// GET /api/mahasiswa/:id
+// =====================================================
 
 router.get("/:id", (req, res) => {
 
@@ -130,45 +144,56 @@ router.get("/:id", (req, res) => {
         SELECT *
         FROM mahasiswa
         WHERE id = ?
+        LIMIT 1
     `;
 
-    db.query(sql, [id], (err, results) => {
+    db.query(
+        sql,
+        [id],
+        (err, results) => {
 
-        if (err) {
+            if (err) {
 
-            return res.status(500).json({
-                status: false,
-                message: "Gagal mengambil mahasiswa",
-                error: err.message
+                console.error(
+                    "GET MAHASISWA ID ERROR:",
+                    err
+                );
+
+                return res.status(500).json({
+                    status: false,
+                    message: "Gagal mengambil mahasiswa",
+                    error: err.message
+                });
+            }
+
+            if (results.length === 0) {
+
+                return res.status(404).json({
+                    status: false,
+                    message: "Mahasiswa tidak ditemukan"
+                });
+            }
+
+            return res.json({
+                status: true,
+                data: results[0]
             });
 
         }
-
-        if (results.length === 0) {
-
-            return res.status(404).json({
-                status: false,
-                message: "Mahasiswa tidak ditemukan"
-            });
-
-        }
-
-        res.json({
-            status: true,
-            data: results[0]
-        });
-
-    });
+    );
 
 });
 
-// ==========================================
-// TAMBAH MAHASISWA + FOTO
+
+// =====================================================
+// TAMBAH MAHASISWA
+// PRIVATE
 // POST /api/mahasiswa
-// ==========================================
+// =====================================================
 
 router.post(
     "/",
+    auth,
     upload.single("foto"),
     (req, res) => {
 
@@ -182,22 +207,40 @@ router.post(
             instagram
         } = req.body;
 
-        // Validasi
+
+        // ---------------------------------------------
+        // VALIDASI
+        // ---------------------------------------------
 
         if (!nama || !nim) {
+
+            // Hapus foto jika sudah ter-upload
+            if (req.file) {
+                fs.unlink(
+                    req.file.path,
+                    () => {}
+                );
+            }
 
             return res.status(400).json({
                 status: false,
                 message: "Nama dan NIM wajib diisi"
             });
-
         }
 
-        // Nama file foto
+
+        // ---------------------------------------------
+        // FOTO
+        // ---------------------------------------------
 
         const foto = req.file
             ? req.file.filename
             : null;
+
+
+        // ---------------------------------------------
+        // INSERT DATABASE
+        // ---------------------------------------------
 
         const sql = `
             INSERT INTO mahasiswa
@@ -214,16 +257,17 @@ router.post(
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
+
         db.query(
             sql,
             [
-                nama,
-                nim,
-                prodi || "",
-                kelas || "",
-                angkatan || "2025",
-                whatsapp || null,
-                instagram || null,
+                nama.trim(),
+                nim.trim(),
+                prodi?.trim() || "Teknik Informatika",
+                kelas?.trim() || "",
+                angkatan?.trim() || "2025",
+                whatsapp?.trim() || null,
+                instagram?.trim() || null,
                 foto
             ],
             (err, result) => {
@@ -236,7 +280,6 @@ router.post(
                     );
 
                     // Hapus file jika database gagal
-
                     if (req.file) {
 
                         fs.unlink(
@@ -251,10 +294,10 @@ router.post(
                         message: "Gagal menambahkan mahasiswa",
                         error: err.message
                     });
-
                 }
 
-                res.status(201).json({
+
+                return res.status(201).json({
 
                     status: true,
 
@@ -291,12 +334,16 @@ router.post(
     }
 );
 
-// ==========================================
+
+// =====================================================
 // UPDATE MAHASISWA
-// ==========================================
+// PRIVATE
+// PUT /api/mahasiswa/:id
+// =====================================================
 
 router.put(
     "/:id",
+    auth,
     upload.single("foto"),
     (req, res) => {
 
@@ -312,7 +359,10 @@ router.put(
             instagram
         } = req.body;
 
-        // Ambil data lama
+
+        // ---------------------------------------------
+        // AMBIL FOTO LAMA
+        // ---------------------------------------------
 
         db.query(
             "SELECT foto FROM mahasiswa WHERE id = ?",
@@ -321,34 +371,55 @@ router.put(
 
                 if (err) {
 
+                    if (req.file) {
+                        fs.unlink(
+                            req.file.path,
+                            () => {}
+                        );
+                    }
+
                     return res.status(500).json({
                         status: false,
-                        message: "Gagal mengambil data mahasiswa",
+                        message:
+                            "Gagal mengambil data mahasiswa",
                         error: err.message
                     });
-
                 }
+
 
                 if (oldData.length === 0) {
 
+                    if (req.file) {
+                        fs.unlink(
+                            req.file.path,
+                            () => {}
+                        );
+                    }
+
                     return res.status(404).json({
                         status: false,
-                        message: "Mahasiswa tidak ditemukan"
+                        message:
+                            "Mahasiswa tidak ditemukan"
                     });
-
                 }
+
 
                 let foto =
                     oldData[0].foto;
 
-                // Jika upload foto baru
+
+                // -----------------------------------------
+                // FOTO BARU
+                // -----------------------------------------
 
                 if (req.file) {
-
-                    foto =
-                        req.file.filename;
-
+                    foto = req.file.filename;
                 }
+
+
+                // -----------------------------------------
+                // UPDATE
+                // -----------------------------------------
 
                 const sql = `
                     UPDATE mahasiswa
@@ -364,16 +435,18 @@ router.put(
                     WHERE id = ?
                 `;
 
+
                 db.query(
                     sql,
                     [
-                        nama,
-                        nim,
-                        prodi || "",
-                        kelas || "",
-                        angkatan || "2025",
-                        whatsapp || null,
-                        instagram || null,
+                        nama?.trim() || "",
+                        nim?.trim() || "",
+                        prodi?.trim() ||
+                            "Teknik Informatika",
+                        kelas?.trim() || "",
+                        angkatan?.trim() || "2025",
+                        whatsapp?.trim() || null,
+                        instagram?.trim() || null,
                         foto,
                         id
                     ],
@@ -381,16 +454,25 @@ router.put(
 
                         if (err) {
 
+                            if (req.file) {
+                                fs.unlink(
+                                    req.file.path,
+                                    () => {}
+                                );
+                            }
+
                             return res.status(500).json({
                                 status: false,
-                                message: "Gagal mengupdate mahasiswa",
+                                message:
+                                    "Gagal mengupdate mahasiswa",
                                 error: err.message
                             });
-
                         }
 
-                        // Hapus foto lama
-                        // jika upload foto baru
+
+                        // ---------------------------------
+                        // HAPUS FOTO LAMA
+                        // ---------------------------------
 
                         if (
                             req.file &&
@@ -416,7 +498,8 @@ router.put(
 
                         }
 
-                        res.json({
+
+                        return res.json({
 
                             status: true,
 
@@ -434,107 +517,179 @@ router.put(
     }
 );
 
-// ==========================================
+
+// =====================================================
 // DELETE MAHASISWA
-// ==========================================
+// PRIVATE
+// DELETE /api/mahasiswa/:id
+// =====================================================
 
-router.delete("/:id", (req, res) => {
+router.delete(
+    "/:id",
+    auth,
+    (req, res) => {
 
-    const { id } = req.params;
+        const { id } = req.params;
 
-    // Cari foto terlebih dahulu
 
-    db.query(
-        "SELECT foto FROM mahasiswa WHERE id = ?",
-        [id],
-        (err, results) => {
+        // ---------------------------------------------
+        // CARI FOTO
+        // ---------------------------------------------
 
-            if (err) {
+        db.query(
+            "SELECT foto FROM mahasiswa WHERE id = ?",
+            [id],
+            (err, results) => {
 
-                return res.status(500).json({
-                    status: false,
-                    message: "Gagal mengambil data mahasiswa",
-                    error: err.message
-                });
+                if (err) {
 
-            }
+                    return res.status(500).json({
+                        status: false,
+                        message:
+                            "Gagal mengambil data mahasiswa",
+                        error: err.message
+                    });
+                }
 
-            if (results.length === 0) {
 
-                return res.status(404).json({
-                    status: false,
-                    message: "Mahasiswa tidak ditemukan"
-                });
+                if (results.length === 0) {
 
-            }
+                    return res.status(404).json({
+                        status: false,
+                        message:
+                            "Mahasiswa tidak ditemukan"
+                    });
+                }
 
-            const foto =
-                results[0].foto;
 
-            // Hapus database
+                const foto =
+                    results[0].foto;
 
-            db.query(
-                "DELETE FROM mahasiswa WHERE id = ?",
-                [id],
-                (err, result) => {
 
-                    if (err) {
+                // -----------------------------------------
+                // DELETE DATABASE
+                // -----------------------------------------
 
-                        console.error(
-                            "DELETE MAHASISWA ERROR:",
-                            err
-                        );
+                db.query(
+                    "DELETE FROM mahasiswa WHERE id = ?",
+                    [id],
+                    (err, result) => {
 
-                        return res.status(500).json({
-                            status: false,
-                            message: "Gagal menghapus mahasiswa",
-                            error: err.message
-                        });
+                        if (err) {
 
-                    }
-
-                    // Hapus foto
-
-                    if (foto) {
-
-                        const fotoPath =
-                            path.join(
-                                uploadDir,
-                                foto
+                            console.error(
+                                "DELETE MAHASISWA ERROR:",
+                                err
                             );
 
-                        if (
-                            fs.existsSync(fotoPath)
-                        ) {
+                            return res.status(500).json({
+                                status: false,
+                                message:
+                                    "Gagal menghapus mahasiswa",
+                                error: err.message
+                            });
+                        }
 
-                            fs.unlink(
-                                fotoPath,
-                                () => {}
-                            );
+
+                        // ---------------------------------
+                        // DELETE FOTO
+                        // ---------------------------------
+
+                        if (foto) {
+
+                            const fotoPath =
+                                path.join(
+                                    uploadDir,
+                                    foto
+                                );
+
+                            if (
+                                fs.existsSync(
+                                    fotoPath
+                                )
+                            ) {
+
+                                fs.unlink(
+                                    fotoPath,
+                                    () => {}
+                                );
+
+                            }
 
                         }
 
+
+                        return res.json({
+
+                            status: true,
+
+                            message:
+                                "Mahasiswa berhasil dihapus"
+
+                        });
+
                     }
+                );
 
-                    res.json({
+            }
+        );
 
-                        status: true,
+    }
+);
 
-                        message:
-                            "Mahasiswa berhasil dihapus"
 
-                    });
+// =====================================================
+// ERROR MULTER
+// =====================================================
 
-                }
-            );
+router.use(
+    (err, req, res, next) => {
+
+        console.error(
+            "MAHASISWA ROUTE ERROR:",
+            err
+        );
+
+        if (
+            err instanceof multer.MulterError
+        ) {
+
+            if (
+                err.code === "LIMIT_FILE_SIZE"
+            ) {
+
+                return res.status(400).json({
+                    status: false,
+                    message:
+                        "Ukuran foto maksimal 5 MB"
+                });
+
+            }
+
+            return res.status(400).json({
+                status: false,
+                message:
+                    "Upload foto gagal: " +
+                    err.message
+            });
+        }
+
+
+        if (err) {
+
+            return res.status(400).json({
+                status: false,
+                message:
+                    err.message ||
+                    "Upload foto gagal"
+            });
 
         }
-    );
 
-});
+        next();
 
-// ==========================================
-// EXPORT
-// ==========================================
+    }
+);
+
 
 module.exports = router;

@@ -21,30 +21,61 @@ type Mahasiswa = {
     created_at?: string;
 };
 
+
+// =====================================================
+// API
+// =====================================================
+
 const API =
     process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:5000/api";
+    "https://trustworthy-strength-production-497e.up.railway.app/api";
 
 const SERVER =
-    process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
-    "http://localhost:5000";
+    API.replace(/\/api\/?$/, "");
+
 
 export default function MahasiswaDashboard() {
-    const [data, setData] = useState<Mahasiswa[]>([]);
 
-    const [nama, setNama] = useState("");
-    const [nim, setNim] = useState("");
+    // =================================================
+    // DATA
+    // =================================================
+
+    const [data, setData] =
+        useState<Mahasiswa[]>([]);
+
+
+    // =================================================
+    // FORM
+    // =================================================
+
+    const [nama, setNama] =
+        useState("");
+
+    const [nim, setNim] =
+        useState("");
+
     const [prodi, setProdi] =
         useState("Teknik Informatika");
-    const [kelas, setKelas] = useState("");
+
+    const [kelas, setKelas] =
+        useState("");
+
     const [angkatan, setAngkatan] =
         useState("2025");
+
     const [whatsapp, setWhatsapp] =
         useState("");
+
     const [instagram, setInstagram] =
         useState("");
+
     const [foto, setFoto] =
         useState<File | null>(null);
+
+
+    // =================================================
+    // STATE
+    // =================================================
 
     const [loading, setLoading] =
         useState(true);
@@ -58,271 +89,725 @@ export default function MahasiswaDashboard() {
     const [error, setError] =
         useState("");
 
-    // =========================================
-    // AMBIL DATA MAHASISWA
-    // =========================================
+
+    // =================================================
+    // LOAD DATA
+    // =================================================
 
     const loadData = async () => {
+
         try {
+
             setLoading(true);
             setError("");
 
-            const response = await fetch(
-                `${API}/mahasiswa`,
-                {
-                    cache: "no-store",
-                }
-            );
+            const response =
+                await fetch(
+                    `${API}/mahasiswa`,
+                    {
+                        cache: "no-store",
+                    }
+                );
+
 
             const result =
                 await response.json();
 
-            if (!response.ok) {
+
+            console.log(
+                "MAHASISWA API:",
+                result
+            );
+
+
+            if (
+                !response.ok ||
+                result.status === false
+            ) {
+
                 throw new Error(
                     result.message ||
+                    result.error ||
                     "Gagal mengambil data mahasiswa"
                 );
+
             }
 
-            setData(result.data || []);
+
+            setData(
+                result.data || []
+            );
+
+
         } catch (err) {
-            console.error(err);
+
+            console.error(
+                "GET MAHASISWA ERROR:",
+                err
+            );
 
             setError(
                 err instanceof Error
                     ? err.message
                     : "Gagal mengambil data mahasiswa"
             );
+
+
         } finally {
+
             setLoading(false);
+
         }
+
     };
 
+
+    // =================================================
+    // LOAD SAAT HALAMAN DIBUKA
+    // =================================================
+
     useEffect(() => {
+
         loadData();
+
     }, []);
 
-    // =========================================
+
+    // =================================================
     // PILIH FOTO
-    // =========================================
+    // =================================================
 
     const handleFoto = (
         e: ChangeEvent<HTMLInputElement>
     ) => {
+
         const file =
             e.target.files?.[0] || null;
 
+
+        if (!file) {
+
+            setFoto(null);
+
+            return;
+
+        }
+
+
+        // ---------------------------------------------
+        // CEK FORMAT
+        // ---------------------------------------------
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+        ];
+
+
+        if (
+            !allowedTypes.includes(
+                file.type
+            )
+        ) {
+
+            setError(
+                "Format foto harus JPG, JPEG, PNG, atau WEBP."
+            );
+
+            e.target.value = "";
+
+            setFoto(null);
+
+            return;
+
+        }
+
+
+        // ---------------------------------------------
+        // CEK UKURAN
+        // ---------------------------------------------
+
+        if (
+            file.size >
+            5 * 1024 * 1024
+        ) {
+
+            setError(
+                "Ukuran foto maksimal 5 MB."
+            );
+
+            e.target.value = "";
+
+            setFoto(null);
+
+            return;
+
+        }
+
+
+        setError("");
+
         setFoto(file);
+
     };
 
-    // =========================================
+
+    // =================================================
     // RESET FORM
-    // =========================================
+    // =================================================
 
     const resetForm = () => {
+
         setNama("");
+
         setNim("");
-        setProdi("Teknik Informatika");
+
+        setProdi(
+            "Teknik Informatika"
+        );
+
         setKelas("");
+
         setAngkatan("2025");
+
         setWhatsapp("");
+
         setInstagram("");
+
         setFoto(null);
+
 
         const input =
             document.getElementById(
                 "foto"
-            ) as HTMLInputElement;
+            ) as HTMLInputElement | null;
+
 
         if (input) {
+
             input.value = "";
+
         }
+
     };
 
-    // =========================================
+
+    // =================================================
     // TAMBAH MAHASISWA
-    // =========================================
+    // =================================================
 
     const handleSubmit = async (
         e: FormEvent<HTMLFormElement>
     ) => {
+
         e.preventDefault();
 
+
         setSaving(true);
+
         setMessage("");
+
         setError("");
 
+
         try {
+
+            // =========================================
+            // CEK TOKEN
+            // =========================================
+
+            const token =
+                localStorage.getItem(
+                    "token"
+                );
+
+
+            if (!token) {
+
+                setError(
+                    "Sesi login tidak ditemukan. Silakan login kembali."
+                );
+
+
+                setTimeout(() => {
+
+                    window.location.href =
+                        "/login";
+
+                }, 1000);
+
+
+                return;
+
+            }
+
+
+            // =========================================
+            // VALIDASI
+            // =========================================
+
+            if (!nama.trim()) {
+
+                throw new Error(
+                    "Nama mahasiswa wajib diisi."
+                );
+
+            }
+
+
+            if (!nim.trim()) {
+
+                throw new Error(
+                    "NIM mahasiswa wajib diisi."
+                );
+
+            }
+
+
+            if (!prodi.trim()) {
+
+                throw new Error(
+                    "Program studi wajib diisi."
+                );
+
+            }
+
+
+            if (!kelas.trim()) {
+
+                throw new Error(
+                    "Kelas wajib diisi."
+                );
+
+            }
+
+
+            // =========================================
+            // VALIDASI FOTO
+            // =========================================
+
+            if (foto) {
+
+                const allowedTypes = [
+                    "image/jpeg",
+                    "image/png",
+                    "image/webp",
+                ];
+
+
+                if (
+                    !allowedTypes.includes(
+                        foto.type
+                    )
+                ) {
+
+                    throw new Error(
+                        "Format foto harus JPG, JPEG, PNG, atau WEBP."
+                    );
+
+                }
+
+
+                if (
+                    foto.size >
+                    5 * 1024 * 1024
+                ) {
+
+                    throw new Error(
+                        "Ukuran foto maksimal 5 MB."
+                    );
+
+                }
+
+            }
+
+
+            // =========================================
+            // FORM DATA
+            // =========================================
+
             const formData =
                 new FormData();
 
+
             formData.append(
                 "nama",
-                nama
+                nama.trim()
             );
+
 
             formData.append(
                 "nim",
-                nim
+                nim.trim()
             );
+
 
             formData.append(
                 "prodi",
-                prodi
+                prodi.trim()
             );
+
 
             formData.append(
                 "kelas",
-                kelas
+                kelas.trim()
             );
+
 
             formData.append(
                 "angkatan",
-                angkatan
+                angkatan.trim()
             );
+
 
             formData.append(
                 "whatsapp",
-                whatsapp
+                whatsapp.trim()
             );
+
 
             formData.append(
                 "instagram",
-                instagram
+                instagram.trim()
             );
 
+
             if (foto) {
+
                 formData.append(
                     "foto",
                     foto
                 );
+
             }
+
+
+            // =========================================
+            // KIRIM KE BACKEND
+            // =========================================
 
             const response =
                 await fetch(
                     `${API}/mahasiswa`,
                     {
                         method: "POST",
-                        credentials: "include",
+
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`,
+                        },
+
                         body: formData,
                     }
                 );
 
+
+            // =========================================
+            // BACA RESPONSE
+            // =========================================
+
             const result =
                 await response.json();
 
-            if (!response.ok) {
-                throw new Error(
-                    result.message ||
-                    "Gagal menambahkan mahasiswa"
+
+            console.log(
+                "POST MAHASISWA RESPONSE:",
+                result
+            );
+
+
+            // =========================================
+            // TOKEN TIDAK VALID
+            // =========================================
+
+            if (
+                response.status === 401
+            ) {
+
+                localStorage.removeItem(
+                    "token"
                 );
+
+                localStorage.removeItem(
+                    "admin"
+                );
+
+
+                setError(
+                    "Sesi login sudah berakhir. Silakan login kembali."
+                );
+
+
+                setTimeout(() => {
+
+                    window.location.href =
+                        "/login";
+
+                }, 1000);
+
+
+                return;
+
             }
 
+
+            // =========================================
+            // ERROR BACKEND
+            // =========================================
+
+            if (
+                !response.ok ||
+                result.status === false
+            ) {
+
+                throw new Error(
+                    result.message ||
+                    result.error ||
+                    "Gagal menambahkan mahasiswa."
+                );
+
+            }
+
+
+            // =========================================
+            // BERHASIL
+            // =========================================
+
             setMessage(
-                "Mahasiswa berhasil ditambahkan."
+                "✓ Mahasiswa berhasil ditambahkan."
             );
+
 
             resetForm();
 
+
             await loadData();
+
+
         } catch (err) {
-            console.error(err);
+
+            console.error(
+                "POST MAHASISWA ERROR:",
+                err
+            );
+
 
             setError(
                 err instanceof Error
                     ? err.message
-                    : "Gagal menambahkan mahasiswa"
+                    : "Gagal menambahkan mahasiswa."
             );
+
+
         } finally {
+
             setSaving(false);
+
         }
+
     };
 
-    // =========================================
+
+    // =================================================
     // HAPUS MAHASISWA
-    // =========================================
+    // =================================================
 
     const handleDelete = async (
         id: number
     ) => {
-        const yakin = confirm(
-            "Yakin ingin menghapus mahasiswa ini?"
-        );
+
+        const yakin =
+            confirm(
+                "Yakin ingin menghapus mahasiswa ini?"
+            );
+
 
         if (!yakin) {
+
             return;
+
         }
 
+
         try {
+
             setMessage("");
+
             setError("");
+
+
+            // =========================================
+            // TOKEN
+            // =========================================
+
+            const token =
+                localStorage.getItem(
+                    "token"
+                );
+
+
+            if (!token) {
+
+                setError(
+                    "Sesi login tidak ditemukan."
+                );
+
+
+                setTimeout(() => {
+
+                    window.location.href =
+                        "/login";
+
+                }, 1000);
+
+
+                return;
+
+            }
+
+
+            // =========================================
+            // DELETE
+            // =========================================
 
             const response =
                 await fetch(
                     `${API}/mahasiswa/${id}`,
                     {
                         method: "DELETE",
-                        credentials: "include",
+
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`,
+                        },
                     }
                 );
+
 
             const result =
                 await response.json();
 
-            if (!response.ok) {
-                throw new Error(
-                    result.message ||
-                    "Gagal menghapus mahasiswa"
-                );
-            }
 
-            setMessage(
-                "Mahasiswa berhasil dihapus."
+            console.log(
+                "DELETE MAHASISWA RESPONSE:",
+                result
             );
 
+
+            // =========================================
+            // TOKEN EXPIRED
+            // =========================================
+
+            if (
+                response.status === 401
+            ) {
+
+                localStorage.removeItem(
+                    "token"
+                );
+
+                localStorage.removeItem(
+                    "admin"
+                );
+
+
+                window.location.href =
+                    "/login";
+
+
+                return;
+
+            }
+
+
+            // =========================================
+            // ERROR
+            // =========================================
+
+            if (
+                !response.ok ||
+                result.status === false
+            ) {
+
+                throw new Error(
+                    result.message ||
+                    result.error ||
+                    "Gagal menghapus mahasiswa."
+                );
+
+            }
+
+
+            // =========================================
+            // BERHASIL
+            // =========================================
+
+            setMessage(
+                "✓ Mahasiswa berhasil dihapus."
+            );
+
+
             await loadData();
+
+
         } catch (err) {
-            console.error(err);
+
+            console.error(
+                "DELETE MAHASISWA ERROR:",
+                err
+            );
+
 
             setError(
                 err instanceof Error
                     ? err.message
-                    : "Gagal menghapus mahasiswa"
+                    : "Gagal menghapus mahasiswa."
             );
+
         }
+
     };
 
-    // =========================================
-    // LOGOUT
-    // =========================================
 
-    const handleLogout = async () => {
-        try {
-            await fetch(
-                `${API}/auth/logout`,
-                {
-                    method: "POST",
-                    credentials: "include",
-                }
-            );
-        } catch (error) {
-            console.error(error);
-        }
+    // =================================================
+    // LOGOUT
+    // =================================================
+
+    const handleLogout = () => {
+
+        localStorage.removeItem(
+            "token"
+        );
+
+        localStorage.removeItem(
+            "admin"
+        );
+
 
         window.location.href =
             "/login";
+
     };
 
+
+    // =================================================
+    // RENDER
+    // =================================================
+
     return (
+
         <main className="min-h-screen bg-slate-950 text-white">
 
-            {/* ================================= */}
+
+            {/* ========================================= */}
             {/* SIDEBAR */}
-            {/* ================================= */}
+            {/* ========================================= */}
 
             <aside className="fixed left-0 top-0 hidden h-screen w-64 border-r border-white/10 bg-slate-900 lg:block">
 
                 <div className="flex h-full flex-col">
+
 
                     {/* LOGO */}
 
@@ -332,11 +817,15 @@ export default function MahasiswaDashboard() {
                             href="/dashboard"
                             className="text-xl font-black"
                         >
+
                             INFORMATIKA
+
                             <span className="text-blue-500">
                                 25
                             </span>
+
                         </Link>
+
 
                         <p className="mt-1 text-xs text-slate-500">
                             DASHBOARD ADMIN
@@ -344,55 +833,88 @@ export default function MahasiswaDashboard() {
 
                     </div>
 
+
                     {/* MENU */}
 
                     <nav className="flex-1 space-y-2 p-4">
+
 
                         <Link
                             href="/dashboard"
                             className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-400 transition hover:bg-white/5 hover:text-white"
                         >
-                            <span>📊</span>
+
+                            <span>
+                                📊
+                            </span>
+
                             Dashboard
+
                         </Link>
+
 
                         <Link
                             href="/dashboard/mahasiswa"
                             className="flex items-center gap-3 rounded-xl bg-blue-600 px-4 py-3 font-semibold"
                         >
-                            <span>👨‍🎓</span>
+
+                            <span>
+                                👨‍🎓
+                            </span>
+
                             Mahasiswa
+
                         </Link>
+
 
                         <Link
                             href="/dashboard/galeri"
                             className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-400 transition hover:bg-white/5 hover:text-white"
                         >
-                            <span>🖼️</span>
+
+                            <span>
+                                🖼️
+                            </span>
+
                             Galeri
+
                         </Link>
+
 
                         <Link
                             href="/dashboard/informasi"
                             className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-400 transition hover:bg-white/5 hover:text-white"
                         >
-                            <span>📢</span>
+
+                            <span>
+                                📢
+                            </span>
+
                             Informasi
+
                         </Link>
 
                     </nav>
+
 
                     {/* BOTTOM */}
 
                     <div className="border-t border-white/10 p-4">
 
+
                         <Link
                             href="/"
                             className="mb-2 flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-slate-400 hover:bg-white/5 hover:text-white"
                         >
-                            <span>🌐</span>
+
+                            <span>
+                                🌐
+                            </span>
+
                             Website
+
                         </Link>
+
 
                         <button
                             onClick={
@@ -400,8 +922,13 @@ export default function MahasiswaDashboard() {
                             }
                             className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm text-red-400 hover:bg-red-500/10"
                         >
-                            <span>🚪</span>
+
+                            <span>
+                                🚪
+                            </span>
+
                             Logout
+
                         </button>
 
                     </div>
@@ -410,11 +937,13 @@ export default function MahasiswaDashboard() {
 
             </aside>
 
-            {/* ================================= */}
+
+            {/* ========================================= */}
             {/* CONTENT */}
-            {/* ================================= */}
+            {/* ========================================= */}
 
             <div className="lg:ml-64">
+
 
                 {/* HEADER */}
 
@@ -422,17 +951,21 @@ export default function MahasiswaDashboard() {
 
                     <div className="px-6 py-5 md:px-8">
 
+
                         <p className="text-sm text-slate-500">
                             Dashboard
                         </p>
 
+
                         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+
 
                             <div>
 
                                 <h1 className="text-2xl font-bold">
                                     Kelola Mahasiswa
                                 </h1>
+
 
                                 <p className="mt-1 text-sm text-slate-500">
                                     Tambahkan dan kelola
@@ -442,8 +975,13 @@ export default function MahasiswaDashboard() {
 
                             </div>
 
+
                             <div className="rounded-xl bg-blue-500/10 px-4 py-2 text-sm text-blue-400">
-                                {data.length} Mahasiswa
+
+                                {data.length}
+                                {" "}
+                                Mahasiswa
+
                             </div>
 
                         </div>
@@ -452,23 +990,35 @@ export default function MahasiswaDashboard() {
 
                 </header>
 
+
                 {/* MAIN */}
 
                 <div className="p-6 md:p-8">
 
+
                     {/* NOTIFICATION */}
 
                     {message && (
+
                         <div className="mb-6 rounded-xl border border-green-500/20 bg-green-500/10 p-4 text-green-400">
-                            ✓ {message}
+
+                            {message}
+
                         </div>
+
                     )}
 
+
                     {error && (
+
                         <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-400">
+
                             ! {error}
+
                         </div>
+
                     )}
+
 
                     {/* ================================= */}
                     {/* FORM */}
@@ -476,11 +1026,14 @@ export default function MahasiswaDashboard() {
 
                     <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
 
+
                         <div className="mb-6">
+
 
                             <h2 className="text-xl font-bold">
                                 Tambah Mahasiswa
                             </h2>
+
 
                             <p className="mt-1 text-sm text-slate-500">
                                 Masukkan data mahasiswa
@@ -489,12 +1042,14 @@ export default function MahasiswaDashboard() {
 
                         </div>
 
+
                         <form
                             onSubmit={
                                 handleSubmit
                             }
                             className="grid gap-5 md:grid-cols-2"
                         >
+
 
                             {/* NAMA */}
 
@@ -503,6 +1058,7 @@ export default function MahasiswaDashboard() {
                                 <label className="mb-2 block text-sm font-medium text-slate-300">
                                     Nama Lengkap
                                 </label>
+
 
                                 <input
                                     type="text"
@@ -519,6 +1075,7 @@ export default function MahasiswaDashboard() {
 
                             </div>
 
+
                             {/* NIM */}
 
                             <div>
@@ -526,6 +1083,7 @@ export default function MahasiswaDashboard() {
                                 <label className="mb-2 block text-sm font-medium text-slate-300">
                                     NIM
                                 </label>
+
 
                                 <input
                                     type="text"
@@ -542,6 +1100,7 @@ export default function MahasiswaDashboard() {
 
                             </div>
 
+
                             {/* PRODI */}
 
                             <div>
@@ -549,6 +1108,7 @@ export default function MahasiswaDashboard() {
                                 <label className="mb-2 block text-sm font-medium text-slate-300">
                                     Program Studi
                                 </label>
+
 
                                 <input
                                     type="text"
@@ -565,6 +1125,7 @@ export default function MahasiswaDashboard() {
 
                             </div>
 
+
                             {/* KELAS */}
 
                             <div>
@@ -572,6 +1133,7 @@ export default function MahasiswaDashboard() {
                                 <label className="mb-2 block text-sm font-medium text-slate-300">
                                     Kelas
                                 </label>
+
 
                                 <input
                                     type="text"
@@ -581,12 +1143,13 @@ export default function MahasiswaDashboard() {
                                             e.target.value
                                         )
                                     }
-                                    placeholder="Contoh: A"
+                                    placeholder="Contoh: 2IF4"
                                     required
                                     className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 outline-none transition focus:border-blue-500"
                                 />
 
                             </div>
+
 
                             {/* ANGKATAN */}
 
@@ -595,6 +1158,7 @@ export default function MahasiswaDashboard() {
                                 <label className="mb-2 block text-sm font-medium text-slate-300">
                                     Angkatan
                                 </label>
+
 
                                 <input
                                     type="text"
@@ -610,6 +1174,7 @@ export default function MahasiswaDashboard() {
 
                             </div>
 
+
                             {/* WHATSAPP */}
 
                             <div>
@@ -617,6 +1182,7 @@ export default function MahasiswaDashboard() {
                                 <label className="mb-2 block text-sm font-medium text-slate-300">
                                     WhatsApp
                                 </label>
+
 
                                 <input
                                     type="text"
@@ -632,6 +1198,7 @@ export default function MahasiswaDashboard() {
 
                             </div>
 
+
                             {/* INSTAGRAM */}
 
                             <div>
@@ -639,6 +1206,7 @@ export default function MahasiswaDashboard() {
                                 <label className="mb-2 block text-sm font-medium text-slate-300">
                                     Instagram
                                 </label>
+
 
                                 <input
                                     type="text"
@@ -654,6 +1222,7 @@ export default function MahasiswaDashboard() {
 
                             </div>
 
+
                             {/* FOTO */}
 
                             <div>
@@ -661,6 +1230,7 @@ export default function MahasiswaDashboard() {
                                 <label className="mb-2 block text-sm font-medium text-slate-300">
                                     Foto
                                 </label>
+
 
                                 <input
                                     id="foto"
@@ -672,27 +1242,37 @@ export default function MahasiswaDashboard() {
                                     className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-sm text-slate-300 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-white"
                                 />
 
+
                                 {foto && (
+
                                     <p className="mt-2 text-xs text-slate-500">
-                                        File:{" "}
+
+                                        File:
+                                        {" "}
                                         {foto.name}
+
                                     </p>
+
                                 )}
 
                             </div>
 
+
                             {/* BUTTON */}
 
                             <div className="md:col-span-2">
+
 
                                 <button
                                     type="submit"
                                     disabled={saving}
                                     className="rounded-xl bg-blue-600 px-6 py-3 font-semibold transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
+
                                     {saving
                                         ? "Menyimpan..."
                                         : "➕ Tambah Mahasiswa"}
+
                                 </button>
 
                             </div>
@@ -701,17 +1281,21 @@ export default function MahasiswaDashboard() {
 
                     </section>
 
+
                     {/* ================================= */}
                     {/* DAFTAR MAHASISWA */}
                     {/* ================================= */}
 
                     <section className="mt-10">
 
+
                         <div className="mb-5">
+
 
                             <h2 className="text-xl font-bold">
                                 Daftar Mahasiswa
                             </h2>
+
 
                             <p className="mt-1 text-sm text-slate-500">
                                 Data mahasiswa yang
@@ -719,6 +1303,9 @@ export default function MahasiswaDashboard() {
                             </p>
 
                         </div>
+
+
+                        {/* LOADING */}
 
                         {loading ? (
 
@@ -728,13 +1315,17 @@ export default function MahasiswaDashboard() {
                                     ⏳
                                 </div>
 
+
                                 <p className="mt-3 text-slate-400">
                                     Memuat data...
                                 </p>
 
                             </div>
 
+
                         ) : data.length === 0 ? (
+
+                            /* EMPTY */
 
                             <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-12 text-center">
 
@@ -742,9 +1333,11 @@ export default function MahasiswaDashboard() {
                                     👨‍🎓
                                 </div>
 
+
                                 <h3 className="mt-4 text-lg font-bold">
                                     Belum ada mahasiswa
                                 </h3>
+
 
                                 <p className="mt-2 text-sm text-slate-500">
                                     Tambahkan mahasiswa
@@ -754,41 +1347,53 @@ export default function MahasiswaDashboard() {
 
                             </div>
 
+
                         ) : (
+
+                            /* TABLE */
 
                             <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
 
                                 <div className="overflow-x-auto">
 
+
                                     <table className="w-full min-w-[900px] text-left">
+
 
                                         <thead className="border-b border-white/10 bg-white/5">
 
                                             <tr>
 
+
                                                 <th className="px-6 py-4 text-sm text-slate-400">
                                                     Foto
                                                 </th>
+
 
                                                 <th className="px-6 py-4 text-sm text-slate-400">
                                                     Mahasiswa
                                                 </th>
 
+
                                                 <th className="px-6 py-4 text-sm text-slate-400">
                                                     NIM
                                                 </th>
+
 
                                                 <th className="px-6 py-4 text-sm text-slate-400">
                                                     Kelas
                                                 </th>
 
+
                                                 <th className="px-6 py-4 text-sm text-slate-400">
                                                     Angkatan
                                                 </th>
 
+
                                                 <th className="px-6 py-4 text-sm text-slate-400">
                                                     Kontak
                                                 </th>
+
 
                                                 <th className="px-6 py-4 text-sm text-slate-400">
                                                     Aksi
@@ -798,7 +1403,9 @@ export default function MahasiswaDashboard() {
 
                                         </thead>
 
+
                                         <tbody>
+
 
                                             {data.map(
                                                 (
@@ -812,9 +1419,11 @@ export default function MahasiswaDashboard() {
                                                         className="border-b border-white/5 transition hover:bg-white/5"
                                                     >
 
+
                                                         {/* FOTO */}
 
                                                         <td className="px-6 py-4">
+
 
                                                             {item.foto ? (
 
@@ -829,28 +1438,34 @@ export default function MahasiswaDashboard() {
                                                             ) : (
 
                                                                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-lg font-bold">
+
                                                                     {item.nama
                                                                         .charAt(
                                                                             0
                                                                         )
                                                                         .toUpperCase()}
+
                                                                 </div>
 
                                                             )}
 
                                                         </td>
 
+
                                                         {/* NAMA */}
 
                                                         <td className="px-6 py-4">
 
+
                                                             <div>
+
 
                                                                 <p className="font-semibold">
                                                                     {
                                                                         item.nama
                                                                     }
                                                                 </p>
+
 
                                                                 <p className="mt-1 text-xs text-slate-500">
                                                                     {
@@ -862,41 +1477,55 @@ export default function MahasiswaDashboard() {
 
                                                         </td>
 
+
                                                         {/* NIM */}
 
                                                         <td className="px-6 py-4 text-sm text-slate-400">
+
                                                             {
                                                                 item.nim
                                                             }
+
                                                         </td>
+
 
                                                         {/* KELAS */}
 
                                                         <td className="px-6 py-4">
 
+
                                                             <span className="rounded-lg bg-blue-500/10 px-3 py-1 text-sm text-blue-400">
+
                                                                 {
                                                                     item.kelas
                                                                 }
+
                                                             </span>
 
                                                         </td>
 
+
                                                         {/* ANGKATAN */}
 
                                                         <td className="px-6 py-4 text-sm text-slate-400">
+
                                                             {
                                                                 item.angkatan
                                                             }
+
                                                         </td>
+
 
                                                         {/* KONTAK */}
 
                                                         <td className="px-6 py-4">
 
+
                                                             <div className="space-y-1 text-sm">
 
+
                                                                 {item.whatsapp && (
+
                                                                     <a
                                                                         href={`https://wa.me/${item.whatsapp.replace(
                                                                             /^0/,
@@ -906,25 +1535,35 @@ export default function MahasiswaDashboard() {
                                                                         rel="noopener noreferrer"
                                                                         className="block text-green-400 hover:underline"
                                                                     >
+
                                                                         WhatsApp
+
                                                                     </a>
+
                                                                 )}
 
+
                                                                 {item.instagram && (
+
                                                                     <span className="block text-pink-400">
+
                                                                         {
                                                                             item.instagram
                                                                         }
+
                                                                     </span>
+
                                                                 )}
 
                                                             </div>
 
                                                         </td>
 
+
                                                         {/* AKSI */}
 
                                                         <td className="px-6 py-4">
+
 
                                                             <button
                                                                 onClick={() =>
@@ -934,7 +1573,9 @@ export default function MahasiswaDashboard() {
                                                                 }
                                                                 className="rounded-lg bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/20"
                                                             >
+
                                                                 🗑️ Hapus
+
                                                             </button>
 
                                                         </td>
