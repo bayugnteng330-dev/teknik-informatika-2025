@@ -2,9 +2,11 @@ const express = require("express");
 const router = express.Router();
 
 const db = require("../db");
+const auth = require("../middleware/auth");
 
 // ==========================================
 // GET SEMUA INFORMASI
+// PUBLIC
 // GET /api/informasi
 // ==========================================
 
@@ -36,6 +38,7 @@ router.get("/", (req, res) => {
 
 // ==========================================
 // GET INFORMASI BERDASARKAN ID
+// PUBLIC
 // GET /api/informasi/:id
 // ==========================================
 
@@ -76,10 +79,11 @@ router.get("/:id", (req, res) => {
 
 // ==========================================
 // TAMBAH INFORMASI
+// ADMIN ONLY
 // POST /api/informasi
 // ==========================================
 
-router.post("/", (req, res) => {
+router.post("/", auth, (req, res) => {
     const { judul, isi } = req.body;
 
     if (!judul || !isi) {
@@ -127,11 +131,73 @@ router.post("/", (req, res) => {
 
 
 // ==========================================
+// EDIT INFORMASI
+// ADMIN ONLY
+// PUT /api/informasi/:id
+// ==========================================
+
+router.put("/:id", auth, (req, res) => {
+    const { id } = req.params;
+    const { judul, isi } = req.body;
+
+    if (!judul || !isi) {
+        return res.status(400).json({
+            status: false,
+            message: "Judul dan isi wajib diisi"
+        });
+    }
+
+    const sql = `
+        UPDATE informasi
+        SET judul = ?, isi = ?
+        WHERE id = ?
+    `;
+
+    db.query(
+        sql,
+        [judul, isi, id],
+        (err, result) => {
+            if (err) {
+                console.error(
+                    "PUT INFORMASI ERROR:",
+                    err
+                );
+
+                return res.status(500).json({
+                    status: false,
+                    message: "Gagal mengubah informasi",
+                    error: err.message
+                });
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({
+                    status: false,
+                    message: "Informasi tidak ditemukan"
+                });
+            }
+
+            res.json({
+                status: true,
+                message: "Informasi berhasil diubah",
+                data: {
+                    id: Number(id),
+                    judul: judul,
+                    isi: isi
+                }
+            });
+        }
+    );
+});
+
+
+// ==========================================
 // HAPUS INFORMASI
+// ADMIN ONLY
 // DELETE /api/informasi/:id
 // ==========================================
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", auth, (req, res) => {
     const { id } = req.params;
 
     const sql = `
