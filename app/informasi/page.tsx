@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 type Informasi = {
     id: number;
@@ -10,9 +9,9 @@ type Informasi = {
     created_at?: string;
 };
 
-// =================================
+// ==========================================
 // API RAILWAY
-// =================================
+// ==========================================
 
 const API =
     process.env.NEXT_PUBLIC_API_URL ||
@@ -31,9 +30,9 @@ export default function InformasiPage() {
         useState("");
 
 
-    // =================================
+    // ==========================================
     // AMBIL DATA INFORMASI
-    // =================================
+    // ==========================================
 
     const getInformasi = async () => {
 
@@ -42,18 +41,14 @@ export default function InformasiPage() {
             setLoading(true);
             setError("");
 
-            const response =
-                await fetch(
-                    `${API}/informasi`,
-                    {
-                        cache: "no-store",
-                    }
-                );
+            const response = await fetch(
+                `${API}/informasi`,
+                {
+                    cache: "no-store",
+                }
+            );
 
-
-            const result =
-                await response.json();
-
+            const result = await response.json();
 
             console.log(
                 "INFORMASI API:",
@@ -104,9 +99,9 @@ export default function InformasiPage() {
     };
 
 
-    // =================================
-    // LOAD DATA
-    // =================================
+    // ==========================================
+    // LOAD DATA SAAT HALAMAN DIBUKA
+    // ==========================================
 
     useEffect(() => {
 
@@ -120,165 +115,20 @@ export default function InformasiPage() {
         <main className="min-h-screen bg-slate-950 text-white">
 
 
-            {/* ================================= */}
-            {/* NAVBAR */}
-            {/* ================================= */}
-
-            <nav
-                className="
-                    sticky
-                    top-0
-                    z-50
-                    border-b
-                    border-white/10
-                    bg-slate-950/90
-                    backdrop-blur
-                "
-            >
-
-                <div
-                    className="
-                        mx-auto
-                        flex
-                        max-w-7xl
-                        items-center
-                        justify-between
-                        px-6
-                        py-4
-                    "
-                >
-
-                    {/* LOGO */}
-
-                    <Link
-                        href="/"
-                        className="
-                            text-xl
-                            font-black
-                        "
-                    >
-
-                        INFORMATIKA
-
-                        <span className="text-blue-500">
-                            25
-                        </span>
-
-                    </Link>
-
-
-                    {/* MENU */}
-
-                    <div
-                        className="
-                            hidden
-                            items-center
-                            gap-6
-                            md:flex
-                        "
-                    >
-
-                        <Link
-                            href="/"
-                            className="
-                                text-sm
-                                text-slate-400
-                                transition
-                                hover:text-white
-                            "
-                        >
-                            Home
-                        </Link>
-
-
-                        <Link
-                            href="/mahasiswa"
-                            className="
-                                text-sm
-                                text-slate-400
-                                transition
-                                hover:text-white
-                            "
-                        >
-                            Mahasiswa
-                        </Link>
-
-
-                        <Link
-                            href="/galeri"
-                            className="
-                                text-sm
-                                text-slate-400
-                                transition
-                                hover:text-white
-                            "
-                        >
-                            Galeri
-                        </Link>
-
-
-                        <Link
-                            href="/informasi"
-                            className="
-                                text-sm
-                                font-semibold
-                                text-blue-400
-                            "
-                        >
-                            Informasi
-                        </Link>
-
-
-                        <Link
-                            href="/contact"
-                            className="
-                                text-sm
-                                text-slate-400
-                                transition
-                                hover:text-white
-                            "
-                        >
-                            Contact
-                        </Link>
-
-                    </div>
-
-
-                    {/* LOGIN */}
-
-                    <Link
-                        href="/login"
-                        className="
-                            rounded-xl
-                            bg-blue-600
-                            px-4
-                            py-2
-                            text-sm
-                            font-semibold
-                            transition
-                            hover:bg-blue-500
-                        "
-                    >
-                        Login
-                    </Link>
-
-                </div>
-
-            </nav>
-
-
-            {/* ================================= */}
-            {/* HERO */}
-            {/* ================================= */}
+            {/* ==========================================
+                HERO INFORMASI
+            ========================================== */}
 
             <section
                 className="
                     relative
                     overflow-hidden
+                    border-b
+                    border-white/5
                 "
             >
 
-                {/* GLOW */}
+                {/* Background Glow */}
 
                 <div
                     className="
@@ -297,44 +147,78 @@ export default function InformasiPage() {
 
                 <div
                     className="
+                        absolute
+                        right-0
+                        top-20
+                        h-60
+                        w-60
+                        rounded-full
+                        bg-cyan-500/5
+                        blur-3xl
+                    "
+                />
+
+
+                <div
+                    className="
                         relative
                         mx-auto
-                        max-w-5xl
+                        max-w-6xl
                         px-6
-                        py-24
+                        py-20
                         text-center
+                        md:py-28
                     "
                 >
 
-                    {/* ICON */}
+                    {/* Icon */}
 
-                    <div className="mb-5 text-6xl">
+                    <div
+                        className="
+                            mx-auto
+                            flex
+                            h-20
+                            w-20
+                            items-center
+                            justify-center
+                            rounded-3xl
+                            border
+                            border-blue-500/20
+                            bg-blue-500/10
+                            text-4xl
+                            shadow-2xl
+                            shadow-blue-500/10
+                        "
+                    >
                         📢
                     </div>
 
 
-                    {/* LABEL */}
+                    {/* Label */}
 
                     <p
                         className="
-                            mb-3
-                            text-sm
-                            font-semibold
+                            mt-6
+                            text-xs
+                            font-bold
                             uppercase
-                            tracking-[0.3em]
+                            tracking-[0.35em]
                             text-blue-400
+                            md:text-sm
                         "
                     >
-                        Angkatan 2025
+                        Informatika 2025
                     </p>
 
 
-                    {/* TITLE */}
+                    {/* Title */}
 
                     <h1
                         className="
+                            mt-3
                             text-4xl
                             font-black
+                            tracking-tight
                             md:text-6xl
                         "
                     >
@@ -342,18 +226,22 @@ export default function InformasiPage() {
                     </h1>
 
 
-                    {/* DESCRIPTION */}
+                    {/* Description */}
 
                     <p
                         className="
                             mx-auto
                             mt-5
                             max-w-2xl
+                            text-sm
+                            leading-7
                             text-slate-400
+                            md:text-base
                         "
                     >
-                        Informasi dan pengumuman terbaru
-                        Teknik Informatika Angkatan 2025.
+                        Temukan berbagai informasi,
+                        pengumuman, dan kabar terbaru
+                        dari Teknik Informatika Angkatan 2025.
                     </p>
 
                 </div>
@@ -361,49 +249,77 @@ export default function InformasiPage() {
             </section>
 
 
-            {/* ================================= */}
-            {/* CONTENT */}
-            {/* ================================= */}
+
+            {/* ==========================================
+                CONTENT
+            ========================================== */}
 
             <section
                 className="
                     mx-auto
                     max-w-5xl
                     px-6
-                    pb-24
+                    py-16
+                    md:py-20
                 "
             >
 
 
-                {/* ================================= */}
-                {/* LOADING */}
-                {/* ================================= */}
+                {/* ==========================================
+                    LOADING
+                ========================================== */}
 
                 {loading && (
 
                     <div
                         className="
-                            rounded-2xl
+                            rounded-3xl
                             border
                             border-white/10
-                            bg-white/5
+                            bg-white/[0.03]
                             p-12
                             text-center
+                            backdrop-blur-xl
                         "
                     >
 
-                        <div className="text-5xl">
+                        <div
+                            className="
+                                mx-auto
+                                flex
+                                h-16
+                                w-16
+                                animate-pulse
+                                items-center
+                                justify-center
+                                rounded-2xl
+                                bg-blue-500/10
+                                text-3xl
+                            "
+                        >
                             ⏳
                         </div>
 
 
-                        <p
+                        <h2
                             className="
-                                mt-4
-                                text-slate-400
+                                mt-5
+                                text-lg
+                                font-bold
                             "
                         >
-                            Memuat informasi...
+                            Memuat Informasi
+                        </h2>
+
+
+                        <p
+                            className="
+                                mt-2
+                                text-sm
+                                text-slate-500
+                            "
+                        >
+                            Mohon tunggu sebentar...
                         </p>
 
                     </div>
@@ -411,33 +327,47 @@ export default function InformasiPage() {
                 )}
 
 
-                {/* ================================= */}
-                {/* ERROR */}
-                {/* ================================= */}
+
+                {/* ==========================================
+                    ERROR
+                ========================================== */}
 
                 {!loading && error && (
 
                     <div
                         className="
-                            rounded-2xl
+                            rounded-3xl
                             border
                             border-red-500/20
-                            bg-red-500/10
-                            p-8
+                            bg-red-500/5
+                            p-10
                             text-center
                         "
                     >
 
-                        <div className="text-5xl">
+                        <div
+                            className="
+                                mx-auto
+                                flex
+                                h-16
+                                w-16
+                                items-center
+                                justify-center
+                                rounded-2xl
+                                bg-red-500/10
+                                text-3xl
+                            "
+                        >
                             ⚠️
                         </div>
 
 
                         <h2
                             className="
-                                mt-4
+                                mt-5
                                 text-xl
                                 font-bold
+                                text-white
                             "
                         >
                             Gagal Memuat Informasi
@@ -446,9 +376,12 @@ export default function InformasiPage() {
 
                         <p
                             className="
-                                mt-2
+                                mx-auto
+                                mt-3
+                                max-w-lg
                                 text-sm
-                                text-red-400
+                                leading-6
+                                text-red-300
                             "
                         >
                             {error}
@@ -456,20 +389,18 @@ export default function InformasiPage() {
 
 
                         <button
-                            onClick={
-                                getInformasi
-                            }
+                            onClick={getInformasi}
                             className="
                                 mt-6
                                 rounded-xl
-                                bg-red-500/20
+                                bg-red-500/10
                                 px-5
                                 py-3
                                 text-sm
                                 font-semibold
                                 text-red-300
                                 transition
-                                hover:bg-red-500/30
+                                hover:bg-red-500/20
                             "
                         >
                             🔄 Coba Lagi
@@ -480,9 +411,10 @@ export default function InformasiPage() {
                 )}
 
 
-                {/* ================================= */}
-                {/* DATA KOSONG */}
-                {/* ================================= */}
+
+                {/* ==========================================
+                    DATA KOSONG
+                ========================================== */}
 
                 {!loading &&
                     !error &&
@@ -490,24 +422,36 @@ export default function InformasiPage() {
 
                         <div
                             className="
-                                rounded-2xl
+                                rounded-3xl
                                 border
                                 border-dashed
                                 border-white/10
-                                bg-white/5
+                                bg-white/[0.03]
                                 p-12
                                 text-center
                             "
                         >
 
-                            <div className="text-6xl">
+                            <div
+                                className="
+                                    mx-auto
+                                    flex
+                                    h-20
+                                    w-20
+                                    items-center
+                                    justify-center
+                                    rounded-3xl
+                                    bg-white/5
+                                    text-4xl
+                                "
+                            >
                                 📭
                             </div>
 
 
                             <h2
                                 className="
-                                    mt-5
+                                    mt-6
                                     text-xl
                                     font-bold
                                 "
@@ -518,13 +462,17 @@ export default function InformasiPage() {
 
                             <p
                                 className="
-                                    mt-2
+                                    mx-auto
+                                    mt-3
+                                    max-w-md
                                     text-sm
+                                    leading-6
                                     text-slate-500
                                 "
                             >
-                                Belum ada informasi yang
-                                dipublikasikan oleh admin.
+                                Belum ada informasi atau
+                                pengumuman yang dipublikasikan
+                                oleh admin.
                             </p>
 
                         </div>
@@ -532,9 +480,10 @@ export default function InformasiPage() {
                     )}
 
 
-                {/* ================================= */}
-                {/* LIST INFORMASI */}
-                {/* ================================= */}
+
+                {/* ==========================================
+                    LIST INFORMASI
+                ========================================== */}
 
                 {!loading &&
                     !error &&
@@ -546,6 +495,63 @@ export default function InformasiPage() {
                             "
                         >
 
+                            {/* Jumlah Informasi */}
+
+                            <div
+                                className="
+                                    flex
+                                    items-center
+                                    justify-between
+                                "
+                            >
+
+                                <div>
+
+                                    <p
+                                        className="
+                                            text-sm
+                                            text-slate-500
+                                        "
+                                    >
+                                        Total Informasi
+                                    </p>
+
+
+                                    <p
+                                        className="
+                                            mt-1
+                                            text-2xl
+                                            font-black
+                                        "
+                                    >
+                                        {informasi.length}
+                                    </p>
+
+                                </div>
+
+
+                                <div
+                                    className="
+                                        rounded-full
+                                        border
+                                        border-blue-500/20
+                                        bg-blue-500/10
+                                        px-4
+                                        py-2
+                                        text-xs
+                                        font-semibold
+                                        text-blue-400
+                                    "
+                                >
+                                    📢 Terbaru
+                                </div>
+
+                            </div>
+
+
+
+                            {/* Cards */}
+
                             {informasi.map(
                                 (item) => (
 
@@ -553,33 +559,54 @@ export default function InformasiPage() {
                                         key={item.id}
                                         className="
                                             group
-                                            rounded-2xl
+                                            relative
+                                            overflow-hidden
+                                            rounded-3xl
                                             border
                                             border-white/10
-                                            bg-white/5
+                                            bg-white/[0.03]
                                             p-6
+                                            backdrop-blur-xl
                                             transition
                                             duration-300
                                             hover:-translate-y-1
                                             hover:border-blue-500/30
-                                            hover:bg-white/[0.07]
+                                            hover:bg-white/[0.05]
                                             md:p-8
                                         "
                                     >
 
+                                        {/* Card Glow */}
+
                                         <div
                                             className="
+                                                pointer-events-none
+                                                absolute
+                                                -right-20
+                                                -top-20
+                                                h-40
+                                                w-40
+                                                rounded-full
+                                                bg-blue-500/5
+                                                blur-3xl
+                                                transition
+                                                group-hover:bg-blue-500/10
+                                            "
+                                        />
+
+
+                                        <div
+                                            className="
+                                                relative
                                                 flex
                                                 flex-col
-                                                gap-5
+                                                gap-6
                                                 md:flex-row
                                             "
                                         >
 
 
-                                            {/* ================================= */}
-                                            {/* ICON */}
-                                            {/* ================================= */}
+                                            {/* Icon */}
 
                                             <div
                                                 className="
@@ -590,6 +617,8 @@ export default function InformasiPage() {
                                                     items-center
                                                     justify-center
                                                     rounded-2xl
+                                                    border
+                                                    border-blue-500/20
                                                     bg-blue-500/10
                                                     text-2xl
                                                 "
@@ -598,53 +627,58 @@ export default function InformasiPage() {
                                             </div>
 
 
-                                            {/* ================================= */}
-                                            {/* INFORMASI */}
-                                            {/* ================================= */}
+
+                                            {/* Content */}
 
                                             <div
                                                 className="
+                                                    min-w-0
                                                     flex-1
                                                 "
                                             >
 
 
+                                                {/* Header */}
+
                                                 <div
                                                     className="
                                                         flex
                                                         flex-col
-                                                        justify-between
-                                                        gap-2
+                                                        gap-3
                                                         md:flex-row
+                                                        md:items-start
+                                                        md:justify-between
                                                     "
                                                 >
-
-                                                    {/* JUDUL */}
 
                                                     <h2
                                                         className="
                                                             text-xl
-                                                            font-bold
+                                                            font-black
+                                                            leading-tight
+                                                            text-white
                                                             md:text-2xl
                                                         "
                                                     >
-                                                        {
-                                                            item.judul
-                                                        }
+                                                        {item.judul}
                                                     </h2>
 
 
-                                                    {/* TANGGAL */}
+                                                    {/* Date */}
 
                                                     {item.created_at && (
 
                                                         <span
                                                             className="
+                                                                shrink-0
+                                                                rounded-full
+                                                                bg-white/5
+                                                                px-3
+                                                                py-1.5
                                                                 text-xs
-                                                                text-slate-600
+                                                                text-slate-500
                                                             "
                                                         >
-
                                                             {new Date(
                                                                 item.created_at
                                                             ).toLocaleDateString(
@@ -655,7 +689,6 @@ export default function InformasiPage() {
                                                                     year: "numeric",
                                                                 }
                                                             )}
-
                                                         </span>
 
                                                     )}
@@ -663,34 +696,32 @@ export default function InformasiPage() {
                                                 </div>
 
 
-                                                {/* ================================= */}
-                                                {/* ISI */}
-                                                {/* ================================= */}
+
+                                                {/* Divider */}
 
                                                 <div
                                                     className="
-                                                        mt-5
-                                                        border-t
-                                                        border-white/10
-                                                        pt-5
+                                                        my-5
+                                                        h-px
+                                                        bg-white/10
+                                                    "
+                                                />
+
+
+
+                                                {/* Isi */}
+
+                                                <p
+                                                    className="
+                                                        whitespace-pre-line
+                                                        text-sm
+                                                        leading-7
+                                                        text-slate-400
+                                                        md:text-base
                                                     "
                                                 >
-
-                                                    <p
-                                                        className="
-                                                            whitespace-pre-line
-                                                            text-sm
-                                                            leading-7
-                                                            text-slate-400
-                                                            md:text-base
-                                                        "
-                                                    >
-                                                        {
-                                                            item.isi
-                                                        }
-                                                    </p>
-
-                                                </div>
+                                                    {item.isi}
+                                                </p>
 
                                             </div>
 
@@ -708,35 +739,50 @@ export default function InformasiPage() {
             </section>
 
 
-            {/* ================================= */}
-            {/* FOOTER */}
-            {/* ================================= */}
+
+            {/* ==========================================
+                FOOTER
+            ========================================== */}
 
             <footer
                 className="
                     border-t
                     border-white/10
+                    bg-black/20
                 "
             >
 
                 <div
                     className="
                         mx-auto
-                        max-w-7xl
+                        max-w-6xl
                         px-6
-                        py-8
+                        py-10
                         text-center
                     "
                 >
 
+                    <div
+                        className="
+                            text-lg
+                            font-black
+                        "
+                    >
+                        INFORMATIKA
+                        <span className="text-blue-500">
+                            25
+                        </span>
+                    </div>
+
+
                     <p
                         className="
+                            mt-2
                             text-sm
                             text-slate-500
                         "
                     >
-                        © 2025 Teknik Informatika
-                        Angkatan 2025
+                        Teknik Informatika Angkatan 2025
                     </p>
 
 
@@ -748,6 +794,28 @@ export default function InformasiPage() {
                         "
                     >
                         Universitas Khairun
+                    </p>
+
+
+                    <div
+                        className="
+                            mx-auto
+                            mt-6
+                            h-px
+                            max-w-md
+                            bg-white/5
+                        "
+                    />
+
+
+                    <p
+                        className="
+                            mt-6
+                            text-xs
+                            text-slate-600
+                        "
+                    >
+                        © 2025 Informatika 25. All rights reserved.
                     </p>
 
                 </div>
