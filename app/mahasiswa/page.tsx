@@ -1,5 +1,11 @@
 import { getMahasiswa } from "@/lib/api";
 
+const API_URL =
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://trustworthy-strength-production-497e.up.railway.app/api";
+
+const API_SERVER = API_URL.replace(/\/api\/?$/, "");
+
 export default async function MahasiswaPage() {
     let mahasiswa = [];
     let error = "";
@@ -40,7 +46,6 @@ export default async function MahasiswaPage() {
 
             </section>
 
-
             {/* ERROR */}
             {error && (
                 <div className="mx-auto mt-12 max-w-4xl rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center">
@@ -55,7 +60,6 @@ export default async function MahasiswaPage() {
 
                 </div>
             )}
-
 
             {/* MAHASISWA */}
             {!error && (
@@ -93,121 +97,137 @@ export default async function MahasiswaPage() {
                             "
                         >
 
-                            {mahasiswa.map((item: any) => (
+                            {mahasiswa.map((item: any) => {
 
-                                <div
-                                    key={item.id}
-                                    className="
-                                        group
-                                        w-full
-                                        max-w-[310px]
-                                        overflow-hidden
-                                        rounded-[22px]
-                                        border
-                                        border-white/10
-                                        bg-[#0b111d]
-                                        shadow-[0_20px_60px_rgba(0,0,0,0.35)]
-                                        transition-all
-                                        duration-500
-                                        hover:-translate-y-3
-                                        hover:border-blue-500/40
-                                        hover:shadow-[0_25px_70px_rgba(0,80,255,0.15)]
-                                    "
-                                >
+                                /*
+                                 * Foto dari backend Railway.
+                                 *
+                                 * Database hanya menyimpan nama file,
+                                 * contoh:
+                                 * 1789101137435-127196133.jpeg
+                                 *
+                                 * Maka URL lengkapnya:
+                                 * https://trustworthy-strength-production-497e.up.railway.app/uploads/...
+                                 */
 
-                                    {/* TOP BAR */}
-                                    <div className="flex h-16 items-center border-b border-white/10 px-5">
+                                const fotoUrl = item.foto
+                                    ? `${API_SERVER}/uploads/${item.foto}`
+                                    : null;
 
-                                        <div className="flex gap-2">
+                                return (
 
-                                            <span className="h-3 w-3 rounded-full bg-red-400" />
+                                    <div
+                                        key={item.id}
+                                        className="
+                                            group
+                                            w-full
+                                            max-w-[310px]
+                                            overflow-hidden
+                                            rounded-[22px]
+                                            border
+                                            border-white/10
+                                            bg-[#0b111d]
+                                            shadow-[0_20px_60px_rgba(0,0,0,0.35)]
+                                            transition-all
+                                            duration-500
+                                            hover:-translate-y-3
+                                            hover:border-blue-500/40
+                                            hover:shadow-[0_25px_70px_rgba(0,80,255,0.15)]
+                                        "
+                                    >
 
-                                            <span className="h-3 w-3 rounded-full bg-yellow-400" />
+                                        {/* TOP BAR */}
+                                        <div className="flex h-16 items-center border-b border-white/10 px-5">
 
-                                            <span className="h-3 w-3 rounded-full bg-green-500" />
+                                            <div className="flex gap-2">
+
+                                                <span className="h-3 w-3 rounded-full bg-red-400" />
+
+                                                <span className="h-3 w-3 rounded-full bg-yellow-400" />
+
+                                                <span className="h-3 w-3 rounded-full bg-green-500" />
+
+                                            </div>
+
+                                            <div className="ml-5 h-px flex-1 bg-white/5" />
 
                                         </div>
 
-                                        <div className="ml-5 h-px flex-1 bg-white/5" />
+                                        {/* FOTO */}
+                                        <div className="p-5">
 
-                                    </div>
+                                            <div
+                                                className="
+                                                    relative
+                                                    aspect-[4/5]
+                                                    overflow-hidden
+                                                    rounded-[15px]
+                                                    bg-[#111827]
+                                                "
+                                            >
 
+                                                {fotoUrl ? (
 
-                                    {/* FOTO */}
-                                    <div className="p-5">
+                                                    <img
+                                                        src={fotoUrl}
+                                                        alt={item.nama}
+                                                        className="
+                                                            h-full
+                                                            w-full
+                                                            object-cover
+                                                            transition-transform
+                                                            duration-700
+                                                            group-hover:scale-105
+                                                        "
+                                                    />
 
-                                        <div
-                                            className="
-                                                relative
-                                                aspect-[4/5]
-                                                overflow-hidden
-                                                rounded-[15px]
-                                                bg-[#111827]
-                                            "
-                                        >
+                                                ) : (
 
-                                            {item.foto ? (
+                                                    <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-950 to-slate-950">
 
-                                                <img
-                                                    src={`/uploads/${item.foto}`}
-                                                    alt={item.nama}
-                                                    className="
-                                                        h-full
-                                                        w-full
-                                                        object-cover
-                                                        transition-transform
-                                                        duration-700
-                                                        group-hover:scale-105
-                                                    "
-                                                />
+                                                        <div className="text-center">
 
-                                            ) : (
+                                                            <div className="text-7xl">
+                                                                👤
+                                                            </div>
 
-                                                <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-950 to-slate-950">
+                                                            <p className="mt-4 text-sm text-gray-500">
+                                                                Foto belum tersedia
+                                                            </p>
 
-                                                    <div className="text-center">
-
-                                                        <div className="text-7xl">
-                                                            👤
                                                         </div>
-
-                                                        <p className="mt-4 text-sm text-gray-500">
-                                                            Foto belum tersedia
-                                                        </p>
 
                                                     </div>
 
-                                                </div>
+                                                )}
 
-                                            )}
+                                            </div>
 
-                                        </div>
+                                            {/* NAMA */}
+                                            <div className="px-2 pb-2 pt-6 text-center">
 
+                                                <h2
+                                                    className="
+                                                        text-lg
+                                                        font-bold
+                                                        leading-snug
+                                                        text-white
+                                                        transition-colors
+                                                        duration-300
+                                                        group-hover:text-blue-400
+                                                    "
+                                                >
+                                                    {item.nama}
+                                                </h2>
 
-                                        {/* NAMA */}
-                                        <div className="px-2 pb-2 pt-6 text-center">
-
-                                            <h2
-                                                className="
-                                                    text-lg
-                                                    font-bold
-                                                    leading-snug
-                                                    text-white
-                                                    transition-colors
-                                                    duration-300
-                                                    group-hover:text-blue-400
-                                                "
-                                            >
-                                                {item.nama}
-                                            </h2>
+                                            </div>
 
                                         </div>
 
                                     </div>
 
-                                </div>
-
-                            ))}
+                                );
+                            })}
 
                         </div>
 
