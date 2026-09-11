@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 type Informasi = {
     id: number;
@@ -9,14 +10,25 @@ type Informasi = {
     created_at?: string;
 };
 
+// =================================
+// API RAILWAY
+// =================================
+
 const API =
     process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:5000/api";
+    "https://trustworthy-strength-production-497e.up.railway.app/api";
+
+
 export default function InformasiPage() {
 
-    const [informasi, setInformasi] = useState<Informasi[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const [informasi, setInformasi] =
+        useState<Informasi[]>([]);
+
+    const [loading, setLoading] =
+        useState(true);
+
+    const [error, setError] =
+        useState("");
 
 
     // =================================
@@ -30,37 +42,58 @@ export default function InformasiPage() {
             setLoading(true);
             setError("");
 
-            const response = await fetch(
-                `${API}/informasi`,
-                {
-                    cache: "no-store",
-                }
+            const response =
+                await fetch(
+                    `${API}/informasi`,
+                    {
+                        cache: "no-store",
+                    }
+                );
+
+
+            const result =
+                await response.json();
+
+
+            console.log(
+                "INFORMASI API:",
+                result
             );
 
-            const result = await response.json();
 
-            if (!response.ok) {
+            if (
+                !response.ok ||
+                result.status === false
+            ) {
 
                 throw new Error(
                     result.message ||
+                    result.error ||
                     "Gagal mengambil informasi"
                 );
 
             }
 
+
             setInformasi(
                 result.data || []
             );
 
+
         } catch (err) {
 
-            console.error(err);
+            console.error(
+                "GET INFORMASI ERROR:",
+                err
+            );
+
 
             setError(
                 err instanceof Error
                     ? err.message
                     : "Gagal mengambil informasi"
             );
+
 
         } finally {
 
@@ -88,10 +121,162 @@ export default function InformasiPage() {
 
 
             {/* ================================= */}
+            {/* NAVBAR */}
+            {/* ================================= */}
+
+            <nav
+                className="
+                    sticky
+                    top-0
+                    z-50
+                    border-b
+                    border-white/10
+                    bg-slate-950/90
+                    backdrop-blur
+                "
+            >
+
+                <div
+                    className="
+                        mx-auto
+                        flex
+                        max-w-7xl
+                        items-center
+                        justify-between
+                        px-6
+                        py-4
+                    "
+                >
+
+                    {/* LOGO */}
+
+                    <Link
+                        href="/"
+                        className="
+                            text-xl
+                            font-black
+                        "
+                    >
+
+                        INFORMATIKA
+
+                        <span className="text-blue-500">
+                            25
+                        </span>
+
+                    </Link>
+
+
+                    {/* MENU */}
+
+                    <div
+                        className="
+                            hidden
+                            items-center
+                            gap-6
+                            md:flex
+                        "
+                    >
+
+                        <Link
+                            href="/"
+                            className="
+                                text-sm
+                                text-slate-400
+                                transition
+                                hover:text-white
+                            "
+                        >
+                            Home
+                        </Link>
+
+
+                        <Link
+                            href="/mahasiswa"
+                            className="
+                                text-sm
+                                text-slate-400
+                                transition
+                                hover:text-white
+                            "
+                        >
+                            Mahasiswa
+                        </Link>
+
+
+                        <Link
+                            href="/galeri"
+                            className="
+                                text-sm
+                                text-slate-400
+                                transition
+                                hover:text-white
+                            "
+                        >
+                            Galeri
+                        </Link>
+
+
+                        <Link
+                            href="/informasi"
+                            className="
+                                text-sm
+                                font-semibold
+                                text-blue-400
+                            "
+                        >
+                            Informasi
+                        </Link>
+
+
+                        <Link
+                            href="/contact"
+                            className="
+                                text-sm
+                                text-slate-400
+                                transition
+                                hover:text-white
+                            "
+                        >
+                            Contact
+                        </Link>
+
+                    </div>
+
+
+                    {/* LOGIN */}
+
+                    <Link
+                        href="/login"
+                        className="
+                            rounded-xl
+                            bg-blue-600
+                            px-4
+                            py-2
+                            text-sm
+                            font-semibold
+                            transition
+                            hover:bg-blue-500
+                        "
+                    >
+                        Login
+                    </Link>
+
+                </div>
+
+            </nav>
+
+
+            {/* ================================= */}
             {/* HERO */}
             {/* ================================= */}
 
-            <section className="relative overflow-hidden">
+            <section
+                className="
+                    relative
+                    overflow-hidden
+                "
+            >
 
                 {/* GLOW */}
 
@@ -211,6 +396,7 @@ export default function InformasiPage() {
                             ⏳
                         </div>
 
+
                         <p
                             className="
                                 mt-4
@@ -270,7 +456,9 @@ export default function InformasiPage() {
 
 
                         <button
-                            onClick={getInformasi}
+                            onClick={
+                                getInformasi
+                            }
                             className="
                                 mt-6
                                 rounded-xl
@@ -352,150 +540,166 @@ export default function InformasiPage() {
                     !error &&
                     informasi.length > 0 && (
 
-                        <div className="space-y-6">
+                        <div
+                            className="
+                                space-y-6
+                            "
+                        >
 
-                            {informasi.map((item) => (
+                            {informasi.map(
+                                (item) => (
 
-                                <article
-                                    key={item.id}
-                                    className="
-                                        group
-                                        rounded-2xl
-                                        border
-                                        border-white/10
-                                        bg-white/5
-                                        p-6
-                                        transition
-                                        duration-300
-                                        hover:-translate-y-1
-                                        hover:border-blue-500/30
-                                        hover:bg-white/[0.07]
-                                        md:p-8
-                                    "
-                                >
-
-                                    <div
+                                    <article
+                                        key={item.id}
                                         className="
-                                            flex
-                                            flex-col
-                                            gap-5
-                                            md:flex-row
+                                            group
+                                            rounded-2xl
+                                            border
+                                            border-white/10
+                                            bg-white/5
+                                            p-6
+                                            transition
+                                            duration-300
+                                            hover:-translate-y-1
+                                            hover:border-blue-500/30
+                                            hover:bg-white/[0.07]
+                                            md:p-8
                                         "
                                     >
-
-
-                                        {/* ================================= */}
-                                        {/* ICON */}
-                                        {/* ================================= */}
 
                                         <div
                                             className="
                                                 flex
-                                                h-14
-                                                w-14
-                                                shrink-0
-                                                items-center
-                                                justify-center
-                                                rounded-2xl
-                                                bg-blue-500/10
-                                                text-2xl
+                                                flex-col
+                                                gap-5
+                                                md:flex-row
                                             "
                                         >
-                                            📢
-                                        </div>
 
 
-                                        {/* ================================= */}
-                                        {/* INFORMASI */}
-                                        {/* ================================= */}
-
-                                        <div className="flex-1">
-
+                                            {/* ================================= */}
+                                            {/* ICON */}
+                                            {/* ================================= */}
 
                                             <div
                                                 className="
                                                     flex
-                                                    flex-col
-                                                    justify-between
-                                                    gap-2
-                                                    md:flex-row
+                                                    h-14
+                                                    w-14
+                                                    shrink-0
+                                                    items-center
+                                                    justify-center
+                                                    rounded-2xl
+                                                    bg-blue-500/10
+                                                    text-2xl
                                                 "
                                             >
-
-                                                {/* JUDUL */}
-
-                                                <h2
-                                                    className="
-                                                        text-xl
-                                                        font-bold
-                                                        md:text-2xl
-                                                    "
-                                                >
-                                                    {item.judul}
-                                                </h2>
-
-
-                                                {/* TANGGAL */}
-
-                                                {item.created_at && (
-
-                                                    <span
-                                                        className="
-                                                            text-xs
-                                                            text-slate-600
-                                                        "
-                                                    >
-                                                        {new Date(
-                                                            item.created_at
-                                                        ).toLocaleDateString(
-                                                            "id-ID",
-                                                            {
-                                                                day: "numeric",
-                                                                month: "long",
-                                                                year: "numeric",
-                                                            }
-                                                        )}
-                                                    </span>
-
-                                                )}
-
+                                                📢
                                             </div>
 
 
                                             {/* ================================= */}
-                                            {/* ISI */}
+                                            {/* INFORMASI */}
                                             {/* ================================= */}
 
                                             <div
                                                 className="
-                                                    mt-5
-                                                    border-t
-                                                    border-white/10
-                                                    pt-5
+                                                    flex-1
                                                 "
                                             >
 
-                                                <p
+
+                                                <div
                                                     className="
-                                                        whitespace-pre-line
-                                                        text-sm
-                                                        leading-7
-                                                        text-slate-400
-                                                        md:text-base
+                                                        flex
+                                                        flex-col
+                                                        justify-between
+                                                        gap-2
+                                                        md:flex-row
                                                     "
                                                 >
-                                                    {item.isi}
-                                                </p>
+
+                                                    {/* JUDUL */}
+
+                                                    <h2
+                                                        className="
+                                                            text-xl
+                                                            font-bold
+                                                            md:text-2xl
+                                                        "
+                                                    >
+                                                        {
+                                                            item.judul
+                                                        }
+                                                    </h2>
+
+
+                                                    {/* TANGGAL */}
+
+                                                    {item.created_at && (
+
+                                                        <span
+                                                            className="
+                                                                text-xs
+                                                                text-slate-600
+                                                            "
+                                                        >
+
+                                                            {new Date(
+                                                                item.created_at
+                                                            ).toLocaleDateString(
+                                                                "id-ID",
+                                                                {
+                                                                    day: "numeric",
+                                                                    month: "long",
+                                                                    year: "numeric",
+                                                                }
+                                                            )}
+
+                                                        </span>
+
+                                                    )}
+
+                                                </div>
+
+
+                                                {/* ================================= */}
+                                                {/* ISI */}
+                                                {/* ================================= */}
+
+                                                <div
+                                                    className="
+                                                        mt-5
+                                                        border-t
+                                                        border-white/10
+                                                        pt-5
+                                                    "
+                                                >
+
+                                                    <p
+                                                        className="
+                                                            whitespace-pre-line
+                                                            text-sm
+                                                            leading-7
+                                                            text-slate-400
+                                                            md:text-base
+                                                        "
+                                                    >
+                                                        {
+                                                            item.isi
+                                                        }
+                                                    </p>
+
+                                                </div>
 
                                             </div>
 
                                         </div>
 
-                                    </div>
+                                    </article>
 
-                                </article>
-
-                            ))}
+                                )
+                            )}
 
                         </div>
 
