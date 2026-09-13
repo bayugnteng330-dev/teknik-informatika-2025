@@ -1861,641 +1861,363 @@ body {
     }
 }
 /* =========================================================
-   CYBERPUNK ANIMATED BACKGROUND
-   Tidak mengubah struktur app/page.tsx
+   SHOOTING STAR / METEOR ANIMATION
+   Background Home
+   - Lebih banyak bintang
+   - Gerakan lebih lambat
+   - Efek neon cyan / biru
 ========================================================= */
 
-/* ---------------------------------------------------------
-   BASE OVERLAY
---------------------------------------------------------- */
 
-.home-page {
-    isolation: isolate;
-}
-
-/* ---------------------------------------------------------
-   MOVING HEXAGON
---------------------------------------------------------- */
-
-.hex-background {
-    background-color: #030712;
-
-    animation:
-        hexMove 22s linear infinite;
-
-    will-change: background-position;
-}
-
-@keyframes hexMove {
-    0% {
-        background-position:
-            0 0,
-            0 0,
-            40px 70px,
-            40px 70px,
-            0 0,
-            40px 70px;
-    }
-
-    50% {
-        background-position:
-            40px 35px,
-            -40px -35px,
-            80px 105px,
-            0 35px,
-            40px 35px,
-            0 105px;
-    }
-
-    100% {
-        background-position:
-            80px 70px,
-            -80px -70px,
-            120px 140px,
-            -40px 70px,
-            80px 70px,
-            -40px 140px;
-    }
-}
-
-/* ---------------------------------------------------------
-   MOVING NEON LIGHT TRAILS
---------------------------------------------------------- */
-
-.home-page::before {
-    content: "";
-
-    position: absolute;
-
-    inset: -100%;
-
-    z-index: 2;
-
-    pointer-events: none;
-
-    background:
-        repeating-linear-gradient(
-            125deg,
-            transparent 0px,
-            transparent 95px,
-            rgba(6, 182, 212, 0.00) 95px,
-            rgba(6, 182, 212, 0.00) 120px,
-            rgba(6, 182, 212, 0.18) 122px,
-            rgba(59, 130, 246, 0.45) 124px,
-            rgba(6, 182, 212, 0.00) 127px,
-            transparent 130px,
-            transparent 230px
-        );
-
-    opacity: 0.35;
-
-    transform: rotate(-5deg);
-
-    animation:
-        neonLines 12s linear infinite;
-
-    mix-blend-mode: screen;
-}
-
-@keyframes neonLines {
-
-    0% {
-        transform:
-            translate3d(-15%, -15%, 0)
-            rotate(-5deg);
-    }
-
-    50% {
-        transform:
-            translate3d(5%, 5%, 0)
-            rotate(-5deg);
-    }
-
-    100% {
-        transform:
-            translate3d(15%, 15%, 0)
-            rotate(-5deg);
-    }
-}
-
-/* ---------------------------------------------------------
-   MOVING SCAN LIGHT
---------------------------------------------------------- */
-
-.home-page::after {
-    content: "";
-
-    position: absolute;
-
-    top: -30%;
-
-    left: -20%;
-
-    width: 140%;
-
-    height: 35%;
-
-    z-index: 3;
-
-    pointer-events: none;
-
-    background:
-        linear-gradient(
-            180deg,
-            transparent,
-            rgba(6, 182, 212, 0.025),
-            rgba(6, 182, 212, 0.12),
-            rgba(6, 182, 212, 0.025),
-            transparent
-        );
-
-    filter: blur(12px);
-
-    animation:
-        scanMove 8s ease-in-out infinite;
-
-    opacity: 0.7;
-}
-
-@keyframes scanMove {
-
-    0% {
-        transform:
-            translateY(-20vh);
-    }
-
-    50% {
-        transform:
-            translateY(140vh);
-    }
-
-    100% {
-        transform:
-            translateY(-20vh);
-    }
-}
-
-/* ---------------------------------------------------------
-   FLOATING PARTICLES
---------------------------------------------------------- */
+/* =========================================================
+   BINTANG JATUH LAYER 1
+========================================================= */
 
 .hex-background::before {
     content: "";
 
     position: absolute;
 
-    width: 4px;
-    height: 4px;
+    top: -10%;
+    left: -15%;
 
-    top: 18%;
-    left: 18%;
+    width: 100px;
+    height: 2px;
 
-    border-radius: 50%;
+    border-radius: 999px;
 
-    background: #22d3ee;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(96, 165, 250, 0.15),
+        #22d3ee,
+        #ffffff
+    );
 
     box-shadow:
-        120px 80px 0 #2563eb,
-        250px 180px 0 #06b6d4,
-        420px 100px 0 #60a5fa,
-        580px 260px 0 #22d3ee,
-        730px 80px 0 #2563eb,
-        900px 220px 0 #06b6d4,
-        1080px 100px 0 #60a5fa,
-        1250px 300px 0 #22d3ee,
-        1400px 150px 0 #2563eb,
-        150px 500px 0 #06b6d4,
-        350px 620px 0 #60a5fa,
-        560px 470px 0 #22d3ee,
-        800px 600px 0 #2563eb,
-        1050px 500px 0 #06b6d4,
-        1300px 650px 0 #60a5fa,
-        1450px 480px 0 #22d3ee,
-        100px 800px 0 #2563eb,
-        300px 900px 0 #06b6d4,
-        650px 820px 0 #60a5fa,
-        900px 950px 0 #22d3ee,
-        1200px 820px 0 #2563eb,
-        1450px 950px 0 #06b6d4;
 
-    filter:
-        drop-shadow(
-            0 0 8px #06b6d4
-        );
+        /* Bintang utama */
+        0 0 6px #22d3ee,
+        0 0 15px rgba(6, 182, 212, 0.8),
+        0 0 30px rgba(37, 99, 235, 0.5),
 
-    opacity: 0.7;
+        /* Bintang 2 */
+        180px 80px 0 rgba(34, 211, 238, 0.8),
+        180px 80px 8px rgba(6, 182, 212, 0.5),
 
-    animation:
-        particlesFloat 5s ease-in-out infinite alternate;
+        /* Bintang 3 */
+        400px 260px 0 rgba(96, 165, 250, 0.9),
+        400px 260px 8px rgba(37, 99, 235, 0.5),
+
+        /* Bintang 4 */
+        650px 40px 0 rgba(34, 211, 238, 0.9),
+        650px 40px 8px rgba(6, 182, 212, 0.5),
+
+        /* Bintang 5 */
+        850px 350px 0 rgba(96, 165, 250, 0.8),
+        850px 350px 8px rgba(37, 99, 235, 0.5),
+
+        /* Bintang 6 */
+        1080px 130px 0 rgba(34, 211, 238, 0.9),
+        1080px 130px 8px rgba(6, 182, 212, 0.5),
+
+        /* Bintang 7 */
+        1300px 500px 0 rgba(96, 165, 250, 0.9),
+        1300px 500px 8px rgba(37, 99, 235, 0.5),
+
+        /* Bintang 8 */
+        1550px 220px 0 rgba(34, 211, 238, 0.8),
+        1550px 220px 8px rgba(6, 182, 212, 0.5);
+
+    transform: rotate(35deg);
+
+    animation: shootingStarSlow1 10s linear infinite;
+
+    opacity: 0;
+
+    z-index: 4;
+
+    pointer-events: none;
 }
 
-@keyframes particlesFloat {
+
+/* =========================================================
+   ANIMASI LAYER 1
+========================================================= */
+
+@keyframes shootingStarSlow1 {
 
     0% {
         transform:
-            translate3d(0, 0, 0)
-            scale(0.8);
+            translate3d(-350px, -300px, 0)
+            rotate(35deg);
 
-        opacity: 0.35;
+        opacity: 0;
     }
 
-    50% {
-        opacity: 0.9;
+    8% {
+        opacity: 0.8;
+    }
+
+    25% {
+        opacity: 1;
+    }
+
+    55% {
+        transform:
+            translate3d(650px, 600px, 0)
+            rotate(35deg);
+
+        opacity: 0.85;
+    }
+
+    70% {
+        opacity: 0;
     }
 
     100% {
         transform:
-            translate3d(35px, -25px, 0)
-            scale(1.25);
+            translate3d(1100px, 1000px, 0)
+            rotate(35deg);
 
-        opacity: 0.65;
+        opacity: 0;
     }
 }
 
-/* ---------------------------------------------------------
-   SECOND PARTICLE LAYER
---------------------------------------------------------- */
+
+/* =========================================================
+   BINTANG JATUH LAYER 2
+========================================================= */
 
 .hex-background::after {
     content: "";
 
     position: absolute;
 
-    width: 2px;
-    height: 2px;
-
-    top: 10%;
-    left: 5%;
-
-    border-radius: 50%;
-
-    background: #67e8f9;
-
-    box-shadow:
-        80px 200px 0 #67e8f9,
-        180px 350px 0 #3b82f6,
-        330px 120px 0 #22d3ee,
-        470px 380px 0 #60a5fa,
-        620px 180px 0 #06b6d4,
-        780px 430px 0 #67e8f9,
-        930px 160px 0 #3b82f6,
-        1100px 360px 0 #22d3ee,
-        1270px 190px 0 #60a5fa,
-        1430px 400px 0 #06b6d4,
-        160px 700px 0 #67e8f9,
-        420px 760px 0 #3b82f6,
-        680px 680px 0 #22d3ee,
-        950px 760px 0 #60a5fa,
-        1200px 700px 0 #06b6d4,
-        1400px 800px 0 #67e8f9;
-
-    filter:
-        drop-shadow(
-            0 0 6px #22d3ee
-        );
-
-    animation:
-        particleDrift 8s linear infinite;
-}
-
-@keyframes particleDrift {
-
-    0% {
-        transform:
-            translate3d(0, 0, 0);
-    }
-
-    25% {
-        transform:
-            translate3d(25px, -20px, 0);
-    }
-
-    50% {
-        transform:
-            translate3d(-15px, -40px, 0);
-    }
-
-    75% {
-        transform:
-            translate3d(-35px, 15px, 0);
-    }
-
-    100% {
-        transform:
-            translate3d(0, 0, 0);
-    }
-}
-
-/* ---------------------------------------------------------
-   EXTRA GLOW PULSING
---------------------------------------------------------- */
-
-.home-glow {
-    animation:
-        cyberGlow 6s ease-in-out infinite alternate;
-}
-
-.home-glow-1 {
-    animation-delay: 0s;
-}
-
-.home-glow-2 {
-    animation-delay: 2s;
-}
-
-@keyframes cyberGlow {
-
-    0% {
-        opacity: 0.08;
-        transform:
-            scale(0.9)
-            translateY(0);
-    }
-
-    50% {
-        opacity: 0.18;
-    }
-
-    100% {
-        opacity: 0.13;
-        transform:
-            scale(1.12)
-            translateY(-25px);
-    }
-}
-
-/* ---------------------------------------------------------
-   HERO CYBER GRID
---------------------------------------------------------- */
-
-.home-hero::before {
-    content: "";
-
-    position: absolute;
-
-    inset: 0;
-
-    z-index: -1;
-
-    pointer-events: none;
-
-    background:
-        linear-gradient(
-            rgba(6, 182, 212, 0.025) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            90deg,
-            rgba(6, 182, 212, 0.025) 1px,
-            transparent 1px
-        );
-
-    background-size:
-        80px 80px;
-
-    mask-image:
-        radial-gradient(
-            ellipse at center,
-            black 20%,
-            transparent 80%
-        );
-
-    animation:
-        gridMove 15s linear infinite;
-}
-
-@keyframes gridMove {
-
-    0% {
-        background-position:
-            0 0;
-    }
-
-    100% {
-        background-position:
-            80px 80px;
-    }
-}
-
-/* ---------------------------------------------------------
-   LOGO FLOATING EFFECT
---------------------------------------------------------- */
-
-.home-logo-area > div {
-    animation:
-        logoFloating 5s ease-in-out infinite;
-}
-
-@keyframes logoFloating {
-
-    0%,
-    100% {
-        transform:
-            translateY(0);
-    }
-
-    50% {
-        transform:
-            translateY(-10px);
-    }
-}
-
-/* ---------------------------------------------------------
-   LOGO LIGHT RING
---------------------------------------------------------- */
-
-.home-logo-area > div::after {
-    content: "";
-
-    position: absolute;
-
-    left: 50%;
-    bottom: 3%;
-
-    width: 55%;
-    height: 18px;
-
-    transform:
-        translateX(-50%);
-
-    border-radius: 50%;
-
-    border:
-        1px solid rgba(6, 182, 212, 0.7);
-
-    box-shadow:
-        0 0 15px rgba(6, 182, 212, 0.6),
-        0 0 35px rgba(37, 99, 235, 0.5),
-        inset 0 0 15px rgba(6, 182, 212, 0.5);
-
-    animation:
-        ringPulse 2.5s ease-in-out infinite;
-}
-
-@keyframes ringPulse {
-
-    0%,
-    100% {
-        transform:
-            translateX(-50%)
-            scaleX(0.85);
-
-        opacity: 0.45;
-    }
-
-    50% {
-        transform:
-            translateX(-50%)
-            scaleX(1.15);
-
-        opacity: 1;
-    }
-}
-
-/* ---------------------------------------------------------
-   CYBER CORNER LIGHTS
---------------------------------------------------------- */
-
-.home-content::before {
-    content: "";
-
-    position: absolute;
-
-    top: -35px;
-    left: -35px;
+    top: 15%;
+    left: 40%;
 
     width: 70px;
-    height: 70px;
+    height: 2px;
 
-    border-top:
-        1px solid rgba(6, 182, 212, 0.8);
+    border-radius: 999px;
 
-    border-left:
-        1px solid rgba(6, 182, 212, 0.8);
-
-    opacity: 0.6;
-
-    box-shadow:
-        -8px -8px 25px rgba(6, 182, 212, 0.12);
-}
-
-.home-content::after {
-    content: "";
-
-    position: absolute;
-
-    bottom: -35px;
-    right: 10px;
-
-    width: 80px;
-    height: 1px;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            #06b6d4
-        );
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(59, 130, 246, 0.15),
+        #60a5fa,
+        #ffffff
+    );
 
     box-shadow:
-        0 0 12px #06b6d4;
 
-    animation:
-        linePulse 2s ease-in-out infinite alternate;
+        /* utama */
+        0 0 5px #60a5fa,
+        0 0 12px rgba(37, 99, 235, 0.8),
+        0 0 25px rgba(6, 182, 212, 0.5),
+
+        /* bintang tambahan */
+        250px 180px 0 rgba(96, 165, 250, 0.8),
+        250px 180px 8px rgba(37, 99, 235, 0.5),
+
+        500px 20px 0 rgba(34, 211, 238, 0.8),
+        500px 20px 8px rgba(6, 182, 212, 0.5),
+
+        750px 280px 0 rgba(96, 165, 250, 0.8),
+        750px 280px 8px rgba(37, 99, 235, 0.5),
+
+        1000px 100px 0 rgba(34, 211, 238, 0.8),
+        1000px 100px 8px rgba(6, 182, 212, 0.5),
+
+        1250px 400px 0 rgba(96, 165, 250, 0.8),
+        1250px 400px 8px rgba(37, 99, 235, 0.5);
+
+    transform: rotate(35deg);
+
+    animation: shootingStarSlow2 13s linear infinite;
+
+    animation-delay: 4s;
+
+    opacity: 0;
+
+    z-index: 4;
+
+    pointer-events: none;
 }
 
-@keyframes linePulse {
 
-    from {
-        width: 40px;
-        opacity: 0.3;
+/* =========================================================
+   ANIMASI LAYER 2
+========================================================= */
+
+@keyframes shootingStarSlow2 {
+
+    0% {
+        transform:
+            translate3d(550px, -250px, 0)
+            rotate(35deg);
+
+        opacity: 0;
     }
 
-    to {
-        width: 100px;
+    10% {
+        opacity: 0.8;
+    }
+
+    30% {
         opacity: 1;
     }
-}
 
-/* ---------------------------------------------------------
-   BUTTON CYBER GLOW
---------------------------------------------------------- */
+    55% {
+        transform:
+            translate3d(-400px, 700px, 0)
+            rotate(35deg);
 
-.home-button.primary {
-    animation:
-        buttonGlow 3s ease-in-out infinite;
-}
+        opacity: 0.7;
+    }
 
-@keyframes buttonGlow {
+    70% {
+        opacity: 0;
+    }
 
-    0%,
     100% {
-        box-shadow:
-            0 10px 30px rgba(37, 99, 235, 0.25);
-    }
+        transform:
+            translate3d(-650px, 1000px, 0)
+            rotate(35deg);
 
-    50% {
-        box-shadow:
-            0 10px 35px rgba(37, 99, 235, 0.45),
-            0 0 20px rgba(6, 182, 212, 0.15);
+        opacity: 0;
     }
 }
 
-/* ---------------------------------------------------------
-   MOBILE OPTIMIZATION
---------------------------------------------------------- */
+
+/* =========================================================
+   BACKGROUND HOME
+========================================================= */
+
+.home-page {
+    background-color: #070d18;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
 
 @media (max-width: 600px) {
 
-    .home-page::before {
-        opacity: 0.18;
-    }
-
-    .home-page::after {
-        opacity: 0.35;
-    }
-
     .hex-background::before {
-        opacity: 0.45;
 
-        transform:
-            scale(0.8);
+        width: 70px;
+        height: 2px;
+
+        animation:
+            shootingStarMobile1 7s linear infinite;
     }
+
 
     .hex-background::after {
-        opacity: 0.35;
 
-        transform:
-            scale(0.8);
+        width: 50px;
+        height: 2px;
+
+        animation:
+            shootingStarMobile2 9s linear infinite;
+
+        animation-delay: 3s;
     }
 
-    .home-hero::before {
-        background-size:
-            55px 55px;
+
+    /* -----------------------------------------
+       MOBILE BINTANG 1
+    ----------------------------------------- */
+
+    @keyframes shootingStarMobile1 {
+
+        0% {
+            transform:
+                translate3d(-180px, -180px, 0)
+                rotate(35deg);
+
+            opacity: 0;
+        }
+
+        10% {
+            opacity: 0.8;
+        }
+
+        30% {
+            opacity: 1;
+        }
+
+        60% {
+            transform:
+                translate3d(380px, 520px, 0)
+                rotate(35deg);
+
+            opacity: 0.6;
+        }
+
+        75% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 0;
+        }
     }
 
-    .home-content::before,
-    .home-content::after {
-        display: none;
+
+    /* -----------------------------------------
+       MOBILE BINTANG 2
+    ----------------------------------------- */
+
+    @keyframes shootingStarMobile2 {
+
+        0% {
+            transform:
+                translate3d(300px, -200px, 0)
+                rotate(35deg);
+
+            opacity: 0;
+        }
+
+        12% {
+            opacity: 0.8;
+        }
+
+        35% {
+            opacity: 1;
+        }
+
+        65% {
+            transform:
+                translate3d(-280px, 600px, 0)
+                rotate(35deg);
+
+            opacity: 0.6;
+        }
+
+        80% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 0;
+        }
     }
 }
 
-/* ---------------------------------------------------------
-   REDUCE MOTION
---------------------------------------------------------- */
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
 
-    .hex-background,
-    .home-page::before,
-    .home-page::after,
     .hex-background::before,
-    .hex-background::after,
-    .home-glow,
-    .home-hero::before,
-    .home-logo-area > div,
-    .home-logo-area > div::after,
-    .home-button.primary {
-        animation: none !important;
+    .hex-background::after {
+        animation: none;
+        opacity: 0;
     }
 }
