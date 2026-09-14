@@ -12,7 +12,7 @@ type Informasi = {
 
 const API =
     process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:5000/api";
+    "https://trustworthy-strength-production-497e.up.railway.app/api";
 
 export default function AdminInformasi() {
     const [data, setData] = useState<Informasi[]>([]);
@@ -25,6 +25,18 @@ export default function AdminInformasi() {
 
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+
+    // ==========================================
+    // AMBIL TOKEN
+    // ==========================================
+
+    const getToken = () => {
+        if (typeof window === "undefined") {
+            return "";
+        }
+
+        return localStorage.getItem("token") || "";
+    };
 
     // ==========================================
     // AMBIL DATA INFORMASI
@@ -43,19 +55,26 @@ export default function AdminInformasi() {
 
             if (!response.ok) {
                 throw new Error(
-                    result.message || "Gagal mengambil data informasi"
+                    result.message ||
+                        "Gagal mengambil data informasi"
                 );
             }
 
-            setData(result.data || []);
+            setData(
+                Array.isArray(result.data)
+                    ? result.data
+                    : []
+            );
         } catch (err) {
-            console.error(err);
+            console.error("LOAD INFORMASI ERROR:", err);
 
             setError(
                 err instanceof Error
                     ? err.message
                     : "Gagal mengambil data informasi"
             );
+
+            setData([]);
         } finally {
             setLoading(false);
         }
@@ -79,37 +98,53 @@ export default function AdminInformasi() {
         setError("");
 
         try {
-            const response = await fetch(`${API}/informasi`, {
-                method: "POST",
+            const token = getToken();
 
-                headers: {
-                    "Content-Type": "application/json",
-                },
+            if (!token) {
+                throw new Error(
+                    "Token login tidak ditemukan. Silakan login kembali."
+                );
+            }
 
-                body: JSON.stringify({
-                    judul,
-                    isi,
-                }),
-            });
+            const response = await fetch(
+                `${API}/informasi`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+
+                    body: JSON.stringify({
+                        judul: judul.trim(),
+                        isi: isi.trim(),
+                    }),
+                }
+            );
 
             const result = await response.json();
 
             if (!response.ok) {
                 throw new Error(
-                    result.message || "Gagal menambahkan informasi"
+                    result.message ||
+                        "Gagal menambahkan informasi"
                 );
             }
 
-            setMessage("Informasi berhasil ditambahkan.");
+            setMessage(
+                "Informasi berhasil ditambahkan."
+            );
 
-            // Kosongkan form
             setJudul("");
             setIsi("");
 
-            // Refresh data
             await loadData();
         } catch (err) {
-            console.error(err);
+            console.error(
+                "TAMBAH INFORMASI ERROR:",
+                err
+            );
 
             setError(
                 err instanceof Error
@@ -138,10 +173,22 @@ export default function AdminInformasi() {
             setMessage("");
             setError("");
 
+            const token = getToken();
+
+            if (!token) {
+                throw new Error(
+                    "Token login tidak ditemukan. Silakan login kembali."
+                );
+            }
+
             const response = await fetch(
                 `${API}/informasi/${id}`,
                 {
                     method: "DELETE",
+
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                 }
             );
 
@@ -149,15 +196,21 @@ export default function AdminInformasi() {
 
             if (!response.ok) {
                 throw new Error(
-                    result.message || "Gagal menghapus informasi"
+                    result.message ||
+                        "Gagal menghapus informasi"
                 );
             }
 
-            setMessage("Informasi berhasil dihapus.");
+            setMessage(
+                "Informasi berhasil dihapus."
+            );
 
             await loadData();
         } catch (err) {
-            console.error(err);
+            console.error(
+                "HAPUS INFORMASI ERROR:",
+                err
+            );
 
             setError(
                 err instanceof Error
@@ -172,6 +225,9 @@ export default function AdminInformasi() {
     // ==========================================
 
     const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("admin");
+
         window.location.href = "/login";
     };
 
@@ -330,7 +386,7 @@ export default function AdminInformasi() {
                     )}
 
                     {/* ================================= */}
-                    {/* FORM TAMBAH INFORMASI */}
+                    {/* FORM */}
                     {/* ================================= */}
 
                     <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -357,8 +413,6 @@ export default function AdminInformasi() {
                             className="space-y-5"
                         >
 
-                            {/* JUDUL */}
-
                             <div>
 
                                 <label className="mb-2 block text-sm font-medium text-slate-300">
@@ -369,7 +423,9 @@ export default function AdminInformasi() {
                                     type="text"
                                     value={judul}
                                     onChange={(e) =>
-                                        setJudul(e.target.value)
+                                        setJudul(
+                                            e.target.value
+                                        )
                                     }
                                     placeholder="Contoh: Jadwal Ujian Semester"
                                     required
@@ -377,8 +433,6 @@ export default function AdminInformasi() {
                                 />
 
                             </div>
-
-                            {/* ISI */}
 
                             <div>
 
@@ -389,7 +443,9 @@ export default function AdminInformasi() {
                                 <textarea
                                     value={isi}
                                     onChange={(e) =>
-                                        setIsi(e.target.value)
+                                        setIsi(
+                                            e.target.value
+                                        )
                                     }
                                     placeholder="Tuliskan informasi atau pengumuman..."
                                     rows={7}
@@ -398,8 +454,6 @@ export default function AdminInformasi() {
                                 />
 
                             </div>
-
-                            {/* BUTTON */}
 
                             <button
                                 type="submit"
@@ -452,105 +506,105 @@ export default function AdminInformasi() {
 
                         {/* KOSONG */}
 
-                        {!loading && data.length === 0 && (
-                            <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-12 text-center">
+                        {!loading &&
+                            data.length === 0 && (
+                                <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-12 text-center">
 
-                                <div className="text-5xl">
-                                    📭
+                                    <div className="text-5xl">
+                                        📭
+                                    </div>
+
+                                    <h3 className="mt-4 text-lg font-bold">
+                                        Belum Ada Informasi
+                                    </h3>
+
+                                    <p className="mt-2 text-sm text-slate-500">
+                                        Tambahkan informasi pertama
+                                        menggunakan form di atas.
+                                    </p>
+
                                 </div>
-
-                                <h3 className="mt-4 text-lg font-bold">
-                                    Belum Ada Informasi
-                                </h3>
-
-                                <p className="mt-2 text-sm text-slate-500">
-                                    Tambahkan informasi pertama
-                                    menggunakan form di atas.
-                                </p>
-
-                            </div>
-                        )}
+                            )}
 
                         {/* DATA */}
 
-                        {!loading && data.length > 0 && (
-                            <div className="space-y-5">
+                        {!loading &&
+                            data.length > 0 && (
+                                <div className="space-y-5">
 
-                                {data.map((item) => (
-                                    <article
-                                        key={item.id}
-                                        className="rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-blue-500/30"
-                                    >
+                                    {data.map((item) => (
+                                        <article
+                                            key={item.id}
+                                            className="rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-blue-500/30"
+                                        >
 
-                                        <div className="flex flex-col gap-5 md:flex-row md:justify-between">
+                                            <div className="flex flex-col gap-5 md:flex-row md:justify-between">
 
-                                            <div className="flex-1">
+                                                <div className="flex-1">
 
-                                                <div className="flex items-start gap-4">
+                                                    <div className="flex items-start gap-4">
 
-                                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-xl">
-                                                        📢
+                                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-xl">
+                                                            📢
+                                                        </div>
+
+                                                        <div>
+
+                                                            <h3 className="text-lg font-bold">
+                                                                {item.judul}
+                                                            </h3>
+
+                                                            {item.created_at && (
+                                                                <p className="mt-1 text-xs text-slate-600">
+                                                                    {new Date(
+                                                                        item.created_at
+                                                                    ).toLocaleDateString(
+                                                                        "id-ID",
+                                                                        {
+                                                                            day: "numeric",
+                                                                            month: "long",
+                                                                            year: "numeric",
+                                                                        }
+                                                                    )}
+                                                                </p>
+                                                            )}
+
+                                                        </div>
+
                                                     </div>
 
-                                                    <div>
+                                                    <div className="mt-5 rounded-xl bg-slate-900/70 p-5">
 
-                                                        <h3 className="text-lg font-bold">
-                                                            {item.judul}
-                                                        </h3>
-
-                                                        {item.created_at && (
-                                                            <p className="mt-1 text-xs text-slate-600">
-                                                                {new Date(
-                                                                    item.created_at
-                                                                ).toLocaleDateString(
-                                                                    "id-ID",
-                                                                    {
-                                                                        day: "numeric",
-                                                                        month: "long",
-                                                                        year: "numeric",
-                                                                    }
-                                                                )}
-                                                            </p>
-                                                        )}
+                                                        <p className="whitespace-pre-line text-sm leading-7 text-slate-400">
+                                                            {item.isi}
+                                                        </p>
 
                                                     </div>
 
                                                 </div>
 
-                                                <div className="mt-5 rounded-xl bg-slate-900/70 p-5">
+                                                <div>
 
-                                                    <p className="whitespace-pre-line text-sm leading-7 text-slate-400">
-                                                        {item.isi}
-                                                    </p>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                item.id
+                                                            )
+                                                        }
+                                                        className="rounded-xl bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/20"
+                                                    >
+                                                        🗑️ Hapus
+                                                    </button>
 
                                                 </div>
 
                                             </div>
 
-                                            {/* HAPUS */}
+                                        </article>
+                                    ))}
 
-                                            <div>
-
-                                                <button
-                                                    onClick={() =>
-                                                        handleDelete(
-                                                            item.id
-                                                        )
-                                                    }
-                                                    className="rounded-xl bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/20"
-                                                >
-                                                    🗑️ Hapus
-                                                </button>
-
-                                            </div>
-
-                                        </div>
-
-                                    </article>
-                                ))}
-
-                            </div>
-                        )}
+                                </div>
+                            )}
 
                     </section>
 
